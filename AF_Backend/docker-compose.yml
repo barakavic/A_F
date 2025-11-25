@@ -18,7 +18,7 @@ services:
     networks:
       - ascent_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ascent_user -d ascent_fin_db"]
+      test: [ "CMD-SHELL", "pg_isready -U ascent_user -d ascent_fin_db" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -35,7 +35,7 @@ services:
     networks:
       - ascent_network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -43,20 +43,20 @@ services:
   # FastAPI Backend
   api:
     build:
-      context: ./AF_Backend
+      context: .
       dockerfile: Dockerfile
     container_name: ascent_fin_api
     restart: unless-stopped
     env_file:
-      - ./AF_Backend/.env
+      - ./.env
     environment:
       - DATABASE_URL=postgresql://ascent_user:ascent_password@postgres:5432/ascent_fin_db
       - REDIS_URL=redis://redis:6379/0
     ports:
       - "8000:8000"
     volumes:
-      - ./AF_Backend:/app
-      - ./AF_Backend/uploads:/app/uploads
+      - .:/app
+      - ./uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
