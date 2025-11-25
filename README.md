@@ -14,3 +14,24 @@ Originally inspired by blockchain-based approaches, this version focuses on a **
 ---
 
 ## Project Structure
+
+---
+
+## 🛠️ Getting Started
+
+### Prerequisites
+- [Flutter](https://flutter.dev/docs/get-started/install) SDK
+- Dart >= 2.12
+- Git
+
+### Installation
+```bash
+# Clone the repo
+git clone https://github.com/<your-username>/Ascent_Fin.git
+cd Ascent_Fin/frontend
+
+# Install dependencies
+flutter pub get
+
+# Run the app
+flutter run
