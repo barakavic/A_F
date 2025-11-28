@@ -45,8 +45,9 @@ async def health_check():
     }
 
 
-# API Routes will be added here
-# Example:
-# from app.api.endpoints import auth, campaigns, contributions, milestones, votes
-# app.include_router(auth.router, prefix=f"{settings.API_V1_PREFIX}/auth", tags=["Authentication"])
-# app.include_router(campaigns.router, prefix=f"{settings.API_V1_PREFIX}/campaigns", tags=["Campaigns"])
+# API Routes
+from app.api.endpoints import auth, campaigns, votes
+
+app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"])
+app.include_router(campaigns.router, prefix=f"{settings.API_V1_STR}/campaigns", tags=["Campaigns"])
+app.include_router(votes.router, prefix=f"{settings.API_V1_STR}/votes", tags=["Votes"])
