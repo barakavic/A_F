@@ -7,8 +7,8 @@ from sqlalchemy.orm import Session
 from app.api.dependencies.deps import get_db
 from app.core import security
 from app.core.config import settings
-from app.models.user import User
-from app.schemas.user import UserCreate, Token, User as UserSchema
+from app.models.user import User, ContributorProfile, FundraiserProfile
+from app.schemas.user import ContributorRegister, FundraiserRegister, Token, User as UserSchema
 
 router = APIRouter()
 
@@ -33,28 +33,79 @@ def login_access_token(
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.post("/register", response_model=UserSchema)
-def register_user(
-    user_in: UserCreate,
+@router.post("/register/contributor", response_model=UserSchema)
+def register_contributor(
+    data: ContributorRegister,
     db: Session = Depends(get_db)
 ) -> Any:
     """
-    Create new user.
+    Register a new contributor with profile.
     """
-    user = db.query(User).filter(User.email == user_in.email).first()
-    if user:
+    # Check if user exists
+    existing_user = db.query(User).filter(User.email == data.email).first()
+    if existing_user:
         raise HTTPException(
             status_code=400,
-            detail="The user with this username already exists in the system",
+            detail="User with this email already exists",
         )
-        
+    
+    # Create account
     user = User(
-        email=user_in.email,
-        password_hash=security.get_password_hash(user_in.password),
-        role=user_in.role,
+        email=data.email,
+        password_hash=security.get_password_hash(data.password),
+        role='contributor',
         is_active=True
     )
     db.add(user)
+    db.flush()  # Get account_id
+    
+    # Create contributor profile
+    profile = ContributorProfile(
+        contributor_id=user.account_id,
+        uname=data.uname,
+        phone_number=data.phone_number
+    )
+    db.add(profile)
     db.commit()
     db.refresh(user)
     return user
+
+@router.post("/register/fundraiser", response_model=UserSchema)
+def register_fundraiser(
+    data: FundraiserRegister,
+    db: Session = Depends(get_db)
+) -> Any:
+    """
+    Register a new fundraiser with profile.
+    """
+    # Check if user exists
+    existing_user = db.query(User).filter(User.email == data.email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=400,
+            detail="User with this email already exists",
+        )
+    
+    # Create account
+    user = User(
+        email=data.email,
+        password_hash=security.get_password_hash(data.password),
+        role='fundraiser',
+        is_active=True
+    )
+    db.add(user)
+    db.flush()  # Get account_id
+    
+    # Create fundraiser profile
+    profile = FundraiserProfile(
+        fundraiser_id=user.account_id,
+        company_name=data.company_name,
+        br_number=data.br_number,
+        industry_l1_id=data.industry_l1_id,
+        industry_l2_id=data.industry_l2_id
+    )
+    db.add(profile)
+    db.commit()
+    db.refresh(user)
+    return user
+

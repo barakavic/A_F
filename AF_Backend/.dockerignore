@@ -78,3 +78,8 @@ Thumbs.db
 
 # Docker
 .dockerignore
+
+# Test Data and Scripts
+*.sql
+test_data/
+

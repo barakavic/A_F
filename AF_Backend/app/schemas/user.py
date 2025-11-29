@@ -9,6 +9,18 @@ class UserCreate(UserBase):
     password: str
     role: str # 'contributor' or 'fundraiser'
 
+class ContributorRegister(UserBase):
+    password: str
+    uname: str
+    phone_number: str
+
+class FundraiserRegister(UserBase):
+    password: str
+    company_name: str
+    br_number: str
+    industry_l1_id: Optional[UUID] = None
+    industry_l2_id: Optional[UUID] = None
+
 class UserLogin(UserBase):
     password: str
 
@@ -26,3 +38,4 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     account_id: Optional[str] = None
+
