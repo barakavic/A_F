@@ -11,11 +11,22 @@ class TransactionLedger(Base):
     transaction_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     escrow_id = Column(UUID(as_uuid=True), ForeignKey("escrow_account.escrow_id"))
     
-    transaction_type = Column(String(50)) # e.g., 'contribution', 'disbursement', 'refund'
+    # Link to the source transaction record
+    contribution_id = Column(UUID(as_uuid=True), ForeignKey("contribution.contribution_id"), nullable=True)
+    fund_release_id = Column(UUID(as_uuid=True), ForeignKey("fund_release.release_id"), nullable=True)
+    refund_event_id = Column(UUID(as_uuid=True), ForeignKey("refund_event.refund_id"), nullable=True)
+    
+    transaction_type = Column(Enum('contribution', 'disbursement', 'refund', name='transaction_type'))
     amount = Column(Numeric(12, 2))
-    reference_code = Column(String(100)) # M-Pesa code etc.
+    reference_code = Column(String(100)) # External payment reference (e.g., M-Pesa code)
     
     created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    escrow = relationship("EscrowAccount")
+    contribution = relationship("Contribution")
+    fund_release = relationship("FundRelease")
+    refund_event = relationship("RefundEvent")
 
 class Contribution(Base):
     __tablename__ = "contribution"
