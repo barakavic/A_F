@@ -114,7 +114,7 @@ def upgrade() -> None:
     sa.Column('campaign_id', sa.UUID(), nullable=True),
     sa.Column('contributor_id', sa.UUID(), nullable=True),
     sa.Column('amount', sa.Numeric(precision=12, scale=2), nullable=True),
-    sa.Column('status', sa.String(length=20), nullable=True),
+    sa.Column('status', sa.Enum('pending', 'completed', 'failed', 'refunded', name='contribution_status'), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['campaign_id'], ['campaign.campaign_id'], ),
     sa.ForeignKeyConstraint(['contributor_id'], ['account.account_id'], ),

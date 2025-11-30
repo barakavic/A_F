@@ -50,7 +50,8 @@ class CampaignService:
         phase_count = AlgorithmService.calculate_phase_count(risk_c, funding_goal)
         
         # Remedial Reserve Rm
-        reserve_rm = AlgorithmService.calculate_remedial_reserve(fti, duration_months)
+        # Disabled for donation-based prototype
+        reserve_rm = 0.0 # AlgorithmService.calculate_remedial_reserve(fti, duration_months)
         
         # 3. Create Campaign Record
         campaign = Campaign(
@@ -89,8 +90,8 @@ class CampaignService:
         for i, weight in enumerate(weights):
             phase_idx = i + 1
             
-            # Disbursement Di = (1 - Rm) * Wi
-            disbursement_pct = (1 - reserve_rm) * weight
+            # Disbursement Di = Wi (Remedial Reserve removed)
+            disbursement_pct = weight
             release_amt = float(funding_goal) * disbursement_pct
             
             milestone = Milestone(

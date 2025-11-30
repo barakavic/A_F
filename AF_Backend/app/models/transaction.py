@@ -25,7 +25,7 @@ class Contribution(Base):
     contributor_id = Column(UUID(as_uuid=True), ForeignKey("account.account_id"))
     
     amount = Column(Numeric(12, 2))
-    status = Column(String(20), default='pending')
+    status = Column(Enum('pending', 'completed', 'failed', 'refunded', name='contribution_status'), default='pending')
     created_at = Column(DateTime, default=datetime.utcnow)
     
     campaign = relationship("Campaign")
