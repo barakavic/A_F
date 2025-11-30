@@ -3,6 +3,7 @@ from app.models.campaign import Campaign
 from app.models.milestone import Milestone
 from app.models.escrow import EscrowAccount
 from app.models.user import FundraiserProfile
+from app.models.fundraiser_campaign_history import FundraiserCampaignHistory
 from app.services.algorithm_service import AlgorithmService
 from datetime import datetime, timedelta
 import uuid
@@ -107,3 +108,45 @@ class CampaignService:
         db.commit()
         db.refresh(campaign)
         return campaign
+
+    @staticmethod
+    def finalize_campaign(db: Session, campaign_id: uuid.UUID) -> FundraiserCampaignHistory:
+        """
+        Finalize a campaign: check success status and budget, then create history record.
+        Should be called when the last milestone is completed or campaign ends.
+        """
+        campaign = db.query(Campaign).filter(Campaign.campaign_id == campaign_id).first()
+        if not campaign:
+            raise ValueError("Campaign not found")
+
+        # 1. Determine Success
+        # A campaign is successful if ALL milestones are 'approved' or 'released'
+        milestones = db.query(Milestone).filter(Milestone.campaign_id == campaign_id).all()
+        
+        is_successful = True
+        if not milestones:
+            is_successful = False # No milestones = not successful? Or maybe failed setup.
+        else:
+            for m in milestones:
+                if m.status not in ['approved', 'released', 'completed']:
+                    is_successful = False
+                    break
+        
+        # 2. Determine High Budget
+        # Threshold is KES 100,000
+        is_high_budget = float(campaign.funding_goal_f) > 100000.0
+        
+        # 3. Create History Record
+        history = FundraiserCampaignHistory(
+            fundraiser_id=campaign.fundraiser_id,
+            campaign_id=campaign_id,
+            is_successful=is_successful,
+            is_high_budget=is_high_budget,
+            completed_at=datetime.utcnow()
+        )
+        
+        db.add(history)
+        db.commit()
+        db.refresh(history)
+        
+        return history
