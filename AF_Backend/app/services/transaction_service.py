@@ -29,11 +29,22 @@ class TransactionService:
         )
         db.add(ledger_entry)
         
-        # 2. Update escrow account
-        escrow = db.query(EscrowAccount).filter(EscrowAccount.escrow_id == escrow_id).first()
+        # 2. Update escrow account with row-level locking and atomic update
+        escrow = db.query(EscrowAccount).filter(
+            EscrowAccount.escrow_id == escrow_id
+        ).with_for_update().first()
+        
         if escrow:
-            escrow.total_contributions = (escrow.total_contributions or 0) + amount
-            escrow.balance = (escrow.balance or 0) + amount
+            # Use atomic SQL update to prevent race conditions
+            from sqlalchemy import update
+            db.execute(
+                update(EscrowAccount)
+                .where(EscrowAccount.escrow_id == escrow_id)
+                .values(
+                    total_contributions=EscrowAccount.total_contributions + amount,
+                    balance=EscrowAccount.balance + amount
+                )
+            )
         
         db.commit()
         return ledger_entry
@@ -58,11 +69,21 @@ class TransactionService:
         )
         db.add(ledger_entry)
         
-        # 2. Update escrow account
-        escrow = db.query(EscrowAccount).filter(EscrowAccount.escrow_id == escrow_id).first()
+        # 2. Update escrow account with row-level locking and atomic update
+        escrow = db.query(EscrowAccount).filter(
+            EscrowAccount.escrow_id == escrow_id
+        ).with_for_update().first()
+        
         if escrow:
-            escrow.total_released = (escrow.total_released or 0) + amount
-            escrow.balance = (escrow.balance or 0) - amount  # SUBTRACT
+            from sqlalchemy import update
+            db.execute(
+                update(EscrowAccount)
+                .where(EscrowAccount.escrow_id == escrow_id)
+                .values(
+                    total_released=EscrowAccount.total_released + amount,
+                    balance=EscrowAccount.balance - amount  # SUBTRACT
+                )
+            )
         
         db.commit()
         return ledger_entry
@@ -87,10 +108,20 @@ class TransactionService:
         )
         db.add(ledger_entry)
         
-        # 2. Update escrow account
-        escrow = db.query(EscrowAccount).filter(EscrowAccount.escrow_id == escrow_id).first()
+        # 2. Update escrow account with row-level locking and atomic update
+        escrow = db.query(EscrowAccount).filter(
+            EscrowAccount.escrow_id == escrow_id
+        ).with_for_update().first()
+        
         if escrow:
-            escrow.balance = (escrow.balance or 0) - amount  # SUBTRACT
+            from sqlalchemy import update
+            db.execute(
+                update(EscrowAccount)
+                .where(EscrowAccount.escrow_id == escrow_id)
+                .values(
+                    balance=EscrowAccount.balance - amount  # SUBTRACT
+                )
+            )
         
         db.commit()
         return ledger_entry

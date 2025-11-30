@@ -12,12 +12,14 @@ class VoteService:
         db: Session,
         milestone_id: uuid.UUID,
         contributor_id: uuid.UUID,
-        vote_value: str,
-        vote_hash: str,
-        signature: str
+        vote_value: str = None,
+        vote_hash: str = None,
+        signature: str = None,
+        is_waived: bool = False
     ) -> VoteSubmission:
         """
         Record a vote submission.
+        If is_waived=True, the vote counts as YES without requiring vote_value/signature.
         TODO: Add signature verification logic here using web3 or eth_account.
         """
         # 1. Check if voting window is open
@@ -34,12 +36,16 @@ class VoteService:
             raise ValueError("Voting window is closed")
 
         # 2. Create Submission
+        # If waived, automatically set vote_value to 'yes'
+        final_vote_value = 'yes' if is_waived else vote_value
+        
         vote = VoteSubmission(
             milestone_id=milestone_id,
             contributor_id=contributor_id,
-            vote_value=vote_value,
+            vote_value=final_vote_value,
             vote_hash=vote_hash,
-            signature=signature
+            signature=signature,
+            is_waived=is_waived
         )
         db.add(vote)
         db.commit()
@@ -53,6 +59,9 @@ class VoteService:
         """
         # 1. Count Yes/No
         # This query groups by vote_value and counts
+        # Note: Waived votes are stored with vote_value='yes', so they are automatically counted as yes.
+        # But to be explicit, we can check is_waived too if needed.
+        # Since cast_vote sets vote_value='yes' when waived, simple grouping works.
         results = db.query(
             VoteSubmission.vote_value, 
             func.count(VoteSubmission.vote_id)

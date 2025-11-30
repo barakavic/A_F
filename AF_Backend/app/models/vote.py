@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Numeric, Enum, Text, UniqueConstraint
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Numeric, Enum, Text, UniqueConstraint, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
@@ -43,6 +43,7 @@ class VoteSubmission(Base):
     
     vote_hash = Column(Text)
     signature = Column(Text) # Digital signature of the vote
+    is_waived = Column(Boolean, default=False) # If true, contributor waived their vote (counts as YES)
     vote_value = Column(Enum('yes', 'no', name='vote_value'))
     submitted_at = Column(DateTime, default=datetime.utcnow)
     
