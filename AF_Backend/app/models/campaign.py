@@ -38,6 +38,8 @@ class Campaign(Base):
     escrow_account = relationship("EscrowAccount", back_populates="campaign", uselist=False)
     vote_tokens = relationship("VoteToken", back_populates="campaign")
 
+# NOTE: Future enhancement - detailed financial audit trail
+# Not part of MVP prototype. Use fundraiser_campaign_history for FTI calculations.
 class CampaignHistory(Base):
     __tablename__ = "campaign_history"
     
