@@ -14,6 +14,14 @@ app = FastAPI(
     debug=settings.DEBUG,
 )
 
+# Mount static files for uploads
+from fastapi.staticfiles import StaticFiles
+import os
+
+# Ensure uploads directory exists
+os.makedirs("uploads", exist_ok=True)
+app.mount("/static", StaticFiles(directory="uploads"), name="static")
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
