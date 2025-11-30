@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Numeric, Enum, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Numeric, Enum, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
@@ -42,8 +42,14 @@ class VoteSubmission(Base):
     contributor_id = Column(UUID(as_uuid=True), ForeignKey("account.account_id"))
     
     vote_hash = Column(Text)
+    signature = Column(Text) # Digital signature of the vote
     vote_value = Column(Enum('yes', 'no', name='vote_value'))
     submitted_at = Column(DateTime, default=datetime.utcnow)
     
     milestone = relationship("Milestone", back_populates="vote_submissions")
     contributor = relationship("User")
+
+    # Prevent double voting: One vote per contributor per milestone
+    __table_args__ = (
+        UniqueConstraint('milestone_id', 'contributor_id', name='uq_vote_milestone_contributor'),
+    )
