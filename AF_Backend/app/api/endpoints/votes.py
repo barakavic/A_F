@@ -19,7 +19,8 @@ class VoteTokenOut(BaseModel):
 class VoteSubmit(BaseModel):
     milestone_id: UUID
     vote_value: str # 'yes' or 'no'
-    token_hash: str
+    signature: str
+    nonce: str
 
 @router.post("/token/{campaign_id}", response_model=VoteTokenOut)
 def generate_vote_token(
@@ -59,9 +60,10 @@ def submit_vote(
             milestone_id=vote_in.milestone_id,
             contributor_id=current_user.account_id,
             vote_value=vote_in.vote_value,
-            token_hash=vote_in.token_hash
+            signature=vote_in.signature,
+            nonce=vote_in.nonce
         )
-        return {"status": "success", "vote_hash": vote.vote_hash}
+        return {"status": "success", "vote_id": vote.vote_id}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

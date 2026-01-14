@@ -1,25 +1,21 @@
 from sqlalchemy.orm import Session
+import uuid
 from app.models.vote import VoteResult, VoteSubmission, VoteToken
 from app.models.milestone import Milestone
-from app.utils.keccak import keccak256
-from datetime import datetime
-import uuid
+from app.models.user import ContributorProfile
+from app.utils.crypto import verify_vote_signature, generate_keccak_hash
 
 class VotingService:
     @staticmethod
     def generate_vote_token(db: Session, campaign_id: uuid.UUID, contributor_id: uuid.UUID) -> VoteToken:
         """
         Generate a vote token for a contributor.
-        Token Hash = Keccak256(campaign_id + contributor_id + timestamp)
+        In the new system, this is mainly a record that the user is authorized to vote.
         """
-        timestamp = datetime.utcnow().isoformat()
-        raw_data = f"{campaign_id}{contributor_id}{timestamp}"
-        token_hash = keccak256(raw_data)
-        
         token = VoteToken(
             campaign_id=campaign_id,
             contributor_id=contributor_id,
-            token_hash=token_hash
+            token_hash="authorized" # We use the public_key from profile for verification
         )
         db.add(token)
         db.commit()
@@ -27,26 +23,50 @@ class VotingService:
         return token
 
     @staticmethod
-    def submit_vote(db: Session, milestone_id: uuid.UUID, contributor_id: uuid.UUID, vote_value: str, token_hash: str) -> VoteSubmission:
+    def submit_vote(
+        db: Session, 
+        milestone_id: uuid.UUID, 
+        contributor_id: uuid.UUID, 
+        vote_value: str, 
+        signature: str, 
+        nonce: str
+    ) -> VoteSubmission:
         """
-        Submit a vote.
-        Verifies token and creates submission.
+        Submit a vote with digital signature verification.
         """
-        # Verify token exists for this campaign (via milestone -> campaign)
+        # 1. Verify Milestone exists
         milestone = db.query(Milestone).filter(Milestone.milestone_id == milestone_id).first()
         if not milestone:
             raise ValueError("Milestone not found")
             
+        # 2. Verify Contributor is authorized (has a token)
         token = db.query(VoteToken).filter(
             VoteToken.campaign_id == milestone.campaign_id,
-            VoteToken.contributor_id == contributor_id,
-            VoteToken.token_hash == token_hash
+            VoteToken.contributor_id == contributor_id
         ).first()
         
         if not token:
-            raise ValueError("Invalid vote token")
+            raise ValueError("You are not authorized to vote on this campaign")
             
-        # Check if already voted
+        # 3. Get Contributor's Public Key
+        profile = db.query(ContributorProfile).filter(ContributorProfile.contributor_id == contributor_id).first()
+        if not profile or not profile.public_key:
+            raise ValueError("Contributor public key not found. Please set up your profile.")
+
+        # 4. Verify Digital Signature
+        is_valid = verify_vote_signature(
+            campaign_id=str(milestone.campaign_id),
+            milestone_id=str(milestone_id),
+            vote_value=vote_value,
+            nonce=nonce,
+            signature=signature,
+            public_key=profile.public_key
+        )
+        
+        if not is_valid:
+            raise ValueError("Invalid cryptographic signature. Vote rejected.")
+
+        # 5. Check if already voted
         existing_vote = db.query(VoteSubmission).filter(
             VoteSubmission.milestone_id == milestone_id,
             VoteSubmission.contributor_id == contributor_id
@@ -55,14 +75,15 @@ class VotingService:
         if existing_vote:
             raise ValueError("Already voted on this milestone")
             
-        # Create vote hash: Keccak256(token_hash + vote_value)
-        vote_hash = keccak256(f"{token_hash}{vote_value}")
+        # 6. Create vote hash for audit trail
+        vote_hash = generate_keccak_hash(f"{signature}{nonce}")
         
         vote = VoteSubmission(
             milestone_id=milestone_id,
             contributor_id=contributor_id,
             vote_value=vote_value,
-            vote_hash=vote_hash
+            vote_hash=vote_hash,
+            signature=signature
         )
         db.add(vote)
         db.commit()

@@ -26,6 +26,7 @@ class ContributorProfile(Base):
     contributor_id = Column(UUID(as_uuid=True), ForeignKey("account.account_id"), primary_key=True)
     uname = Column(String(120))
     phone_number = Column(String(20))
+    public_key = Column(String(66), nullable=True) # For digital signatures
     created_at = Column(DateTime, default=datetime.utcnow)
     
     user = relationship("User", back_populates="contributor_profile")
