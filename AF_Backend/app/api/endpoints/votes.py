@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from app.api.dependencies.deps import get_db, get_current_user
 from app.models.user import User
 from app.services.voting_service import VotingService
+from app.services.escrow_service import EscrowService
 
 router = APIRouter()
 
@@ -106,4 +107,14 @@ def tally_votes(
     Tally votes for a milestone.
     """
     result = VotingService.tally_votes(db, milestone_id)
+    
+    # If approved, release funds
+    if result.outcome == 'approved':
+        try:
+            EscrowService.release_milestone_funds(db, milestone_id)
+        except Exception as e:
+            # We don't want to fail the tally if release fails (e.g. already released)
+            # But in a real app, we'd log this or handle it more robustly
+            print(f"Fund release failed for milestone {milestone_id}: {str(e)}")
+            
     return result

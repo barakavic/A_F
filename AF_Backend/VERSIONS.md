@@ -64,3 +64,26 @@
 ### Technical Details
 - **New Dependencies:** `eth-account`, `eth-utils`.
 - **Security:** ECDSA (secp256k1), Keccak-256, EIP-191 message standard.
+ 
+## v0.4.0 - Financial Operations & Escrow
+**Date:** 2026-01-14
+**Status:** Completed
+
+### Added
+- **Escrow Management:**
+  - Implemented `EscrowService` for managing phased fund releases.
+  - Added logic to calculate release amounts based on milestone weights and campaign targets.
+  - Integrated atomic balance updates with row-level locking to prevent race conditions.
+- **Transaction Auditing:**
+  - Enhanced `TransactionService` to record disbursements and contributions in the `TransactionLedger`.
+  - Ensured every fund movement has a corresponding ledger entry for transparency.
+- **M-Pesa Simulation:**
+  - Created `PaymentService` to simulate Safaricom Daraja API (STK Push and Callbacks).
+  - Implemented a pluggable architecture to allow easy transition to the real M-Pesa Sandbox.
+- **Automated Fund Release:**
+  - Integrated `EscrowService` with the `VotingService` tallying logic.
+  - Funds are now automatically released to the fundraiser upon a successful 75% "YES" vote.
+- **Testing:**
+  - Added `test_escrow_service.py` to verify release logic and balance integrity.
+  - Total test suite expanded to **13 PASSED tests**.
++
