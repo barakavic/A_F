@@ -3,7 +3,6 @@ from app.models.campaign import Campaign
 from app.models.milestone import Milestone
 from app.models.escrow import EscrowAccount
 from app.models.user import FundraiserProfile
-from app.models.fundraiser_campaign_history import FundraiserCampaignHistory
 from app.services.algorithm_service import AlgorithmService
 from datetime import datetime, timedelta
 import uuid
@@ -65,16 +64,28 @@ class CampaignService:
         weights = AlgorithmService.calculate_milestone_weights(phase_count, alpha)
         
         # Seeding phase duration (0.1 * D or 0.1 months)
+        # D is in months. 1 month ~ 30 days.
         seeding_duration_months = max(0.1 * duration_months, 0.1)
         active_duration_months = duration_months - seeding_duration_months
-        phase_duration_months = active_duration_months / phase_count
         
-        # Start date (assuming campaign starts now for calculation, but actual start is when funding opens)
-        # We'll set relative dates or leave null until activation.
-        # For now, let's create them with pending status.
+        # If phase_count > 1, intervals are active_duration / (phase_count - 1)
+        # to ensure the last milestone is at the end of the project.
+        if phase_count > 1:
+            phase_interval_months = active_duration_months / (phase_count - 1)
+        else:
+            phase_interval_months = 0
+            
+        start_time = datetime.utcnow()
         
         for i, weight in enumerate(weights):
             phase_idx = i + 1
+            
+            # Milestone 1 is at the end of the seeding phase
+            if i == 0:
+                deadline = start_time + timedelta(days=seeding_duration_months * 30)
+            else:
+                # Subsequent milestones are spaced by phase_interval_months
+                deadline = start_time + timedelta(days=(seeding_duration_months + i * phase_interval_months) * 30)
             
             # Disbursement Di = Wi (Remedial Reserve removed)
             disbursement_pct = weight
@@ -86,6 +97,7 @@ class CampaignService:
                 phase_weight_wi=weight,
                 disbursement_percentage_di=disbursement_pct,
                 release_amount=release_amt,
+                deadline=deadline,
                 status='pending'
             )
             db.add(milestone)
@@ -94,44 +106,3 @@ class CampaignService:
         db.refresh(campaign)
         return campaign
 
-    @staticmethod
-    def finalize_campaign(db: Session, campaign_id: uuid.UUID) -> FundraiserCampaignHistory:
-        """
-        Finalize a campaign: check success status and budget, then create history record.
-        Should be called when the last milestone is completed or campaign ends.
-        """
-        campaign = db.query(Campaign).filter(Campaign.campaign_id == campaign_id).first()
-        if not campaign:
-            raise ValueError("Campaign not found")
-
-        # 1. Determine Success
-        # A campaign is successful if ALL milestones are 'approved' or 'released'
-        milestones = db.query(Milestone).filter(Milestone.campaign_id == campaign_id).all()
-        
-        is_successful = True
-        if not milestones:
-            is_successful = False # No milestones = not successful? Or maybe failed setup.
-        else:
-            for m in milestones:
-                if m.status not in ['approved', 'released', 'completed']:
-                    is_successful = False
-                    break
-        
-        # 2. Determine High Budget
-        # Threshold is KES 100,000
-        is_high_budget = float(campaign.funding_goal_f) > 100000.0
-        
-        # 3. Create History Record
-        history = FundraiserCampaignHistory(
-            fundraiser_id=campaign.fundraiser_id,
-            campaign_id=campaign_id,
-            is_successful=is_successful,
-            is_high_budget=is_high_budget,
-            completed_at=datetime.utcnow()
-        )
-        
-        db.add(history)
-        db.commit()
-        db.refresh(history)
-        
-        return history

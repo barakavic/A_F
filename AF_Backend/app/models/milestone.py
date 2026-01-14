@@ -19,6 +19,7 @@ class Milestone(Base):
     
     vote_window_start = Column(DateTime)
     vote_window_end = Column(DateTime)
+    deadline = Column(DateTime)
     
     status = Column(Enum('pending', 'approved', 'rejected', 'released', name='milestone_status'), default='pending')
     created_at = Column(DateTime, default=datetime.utcnow)

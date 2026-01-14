@@ -6,9 +6,9 @@ This document outlines the remaining tasks and the strategic approach for comple
 **Objective**: Finalize all business logic and expose it via secure REST endpoints.
 
 ### 1.1 Campaign Management
-- [ ] **Endpoint Integration**: Connect `CampaignService` to `/api/v1/campaigns` routes.
-- [ ] **Seeding Phase Logic**: Implement automatic date calculation for the seeding phase and subsequent milestones.
-- [ ] **Validation**: Ensure campaign creation enforces risk bounds (C, P, Alpha).
+- [x] **Endpoint Integration**: Connect `CampaignService` to `/api/v1/campaigns` routes.
+- [x] **Seeding Phase Logic**: Implement automatic date calculation for the seeding phase and subsequent milestones.
+- [x] **Validation**: Ensure campaign creation enforces risk bounds (C, P, Alpha).
 
 ### 1.2 Contribution & Voting System
 - [ ] **Contribution Flow**: Implement `/api/v1/contributions` to handle pledges.
