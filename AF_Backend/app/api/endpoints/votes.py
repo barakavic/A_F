@@ -22,6 +22,11 @@ class VoteSubmit(BaseModel):
     signature: str
     nonce: str
 
+class VoteWaive(BaseModel):
+    campaign_id: UUID
+    signature: str
+    nonce: str
+
 @router.post("/token/{campaign_id}", response_model=VoteTokenOut)
 def generate_vote_token(
     campaign_id: UUID,
@@ -64,6 +69,30 @@ def submit_vote(
             nonce=vote_in.nonce
         )
         return {"status": "success", "vote_id": vote.vote_id}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/waive")
+def waive_votes(
+    waive_in: VoteWaive,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Waive all future votes for a campaign.
+    """
+    if current_user.role != 'contributor':
+        raise HTTPException(status_code=403, detail="Only contributors can waive votes")
+        
+    try:
+        count = VotingService.waive_all_votes(
+            db=db,
+            campaign_id=waive_in.campaign_id,
+            contributor_id=current_user.account_id,
+            signature=waive_in.signature,
+            nonce=waive_in.nonce
+        )
+        return {"status": "success", "waived_milestones": count}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

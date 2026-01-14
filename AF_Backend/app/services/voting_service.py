@@ -3,7 +3,7 @@ import uuid
 from app.models.vote import VoteResult, VoteSubmission, VoteToken
 from app.models.milestone import Milestone
 from app.models.user import ContributorProfile
-from app.utils.crypto import verify_vote_signature, generate_keccak_hash
+from app.utils.crypto import verify_vote_signature, verify_waiver_signature, generate_keccak_hash
 
 class VotingService:
     @staticmethod
@@ -89,6 +89,71 @@ class VotingService:
         db.commit()
         db.refresh(vote)
         return vote
+
+    @staticmethod
+    def waive_all_votes(
+        db: Session,
+        campaign_id: uuid.UUID,
+        contributor_id: uuid.UUID,
+        signature: str,
+        nonce: str
+    ) -> int:
+        """
+        Waive all future votes for a campaign.
+        Creates 'waived' vote submissions for all milestones in the campaign.
+        """
+        # 1. Verify Contributor is authorized
+        token = db.query(VoteToken).filter(
+            VoteToken.campaign_id == campaign_id,
+            VoteToken.contributor_id == contributor_id
+        ).first()
+        
+        if not token:
+            raise ValueError("You are not authorized to vote on this campaign")
+            
+        # 2. Get Contributor's Public Key
+        profile = db.query(ContributorProfile).filter(ContributorProfile.contributor_id == contributor_id).first()
+        if not profile or not profile.public_key:
+            raise ValueError("Contributor public key not found.")
+
+        # 3. Verify Master Waiver Signature
+        is_valid = verify_waiver_signature(
+            campaign_id=str(campaign_id),
+            nonce=nonce,
+            signature=signature,
+            public_key=profile.public_key
+        )
+        
+        if not is_valid:
+            raise ValueError("Invalid cryptographic signature for waiver.")
+
+        # 4. Find all milestones for this campaign
+        milestones = db.query(Milestone).filter(Milestone.campaign_id == campaign_id).all()
+        
+        waived_count = 0
+        for milestone in milestones:
+            # Check if already voted
+            existing_vote = db.query(VoteSubmission).filter(
+                VoteSubmission.milestone_id == milestone.milestone_id,
+                VoteSubmission.contributor_id == contributor_id
+            ).first()
+            
+            if not existing_vote:
+                # Create a waived vote
+                vote_hash = generate_keccak_hash(f"WAIVER-{signature}-{milestone.milestone_id}")
+                vote = VoteSubmission(
+                    milestone_id=milestone.milestone_id,
+                    contributor_id=contributor_id,
+                    vote_value='yes',
+                    vote_hash=vote_hash,
+                    signature=signature,
+                    is_waived=True
+                )
+                db.add(vote)
+                waived_count += 1
+        
+        db.commit()
+        return waived_count
 
     @staticmethod
     def tally_votes(db: Session, milestone_id: uuid.UUID) -> VoteResult:

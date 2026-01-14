@@ -37,7 +37,7 @@ Core application logic and API implementation.
 #### `/app/utils` - Utility Functions
 - **Purpose**: Helper functions and shared utilities
 - **Files**:
-  - `keccak.py` - Keccak-256 hashing
+  - `crypto.py` - Keccak-256 hashing and ECDSA signatures
   - `validators.py` - Custom validators
   - `formatters.py` - Data formatting
   - `file_handler.py` - File upload/storage
@@ -97,7 +97,7 @@ Core application logic and API implementation.
 ```
 /app/models/
 ├── user.py           # User, Fundraiser, Contributor
-├── campaign.py       # Campaign, CampaignHistory
+├── campaign.py       # Campaign
 ├── milestone.py      # Milestone
 ├── contribution.py   # Contribution
 ├── vote.py           # VoteToken, VoteSubmission, VoteResult
