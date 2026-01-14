@@ -1,6 +1,6 @@
 # Backend Directory Structure Documentation
 
-## 📁 Directory Purposes
+## Directory Purposes
 
 ### `/app` - Main Application Code
 Core application logic and API implementation.
@@ -32,7 +32,7 @@ Core application logic and API implementation.
   - `voting_service.py` - Vote validation and tallying
   - `escrow_service.py` - Fund management logic
   - `payment_service.py` - M-Pesa integration
-  - `algorithm_service.py` - FTI, Phase Count, Remedial Reserve calculations
+  - `algorithm_service.py` - Risk Factor, Alpha, and Phase Count calculations
 
 #### `/app/utils` - Utility Functions
 - **Purpose**: Helper functions and shared utilities
@@ -65,7 +65,7 @@ Core application logic and API implementation.
 
 ---
 
-## 📄 Root Files (To Be Created)
+## Root Files (To Be Created)
 
 - **`.env`** - Environment variables (secrets, DB credentials) - **NOT committed to Git**
 - **`.env.example`** - Template for environment variables
@@ -78,7 +78,7 @@ Core application logic and API implementation.
 
 ---
 
-## 🗂️ Planned File Organization
+## Planned File Organization
 
 ### API Endpoints Structure
 ```
@@ -107,7 +107,7 @@ Core application logic and API implementation.
 
 ---
 
-## 🎯 Design Principles
+## Design Principles
 
 1. **Separation of Concerns**
    - Routes (endpoints) handle HTTP

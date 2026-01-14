@@ -37,7 +37,7 @@
   - Implemented role-based registration endpoints (`/register/contributor`, `/register/fundraiser`).
   - Added JWT token generation and password hashing (Bcrypt).
 - **Risk Engine:**
-  - Implemented `AlgorithmService` for FTI, Risk Factor, and Phase Count calculations.
+  - Implemented `AlgorithmService` for Risk Factor, Alpha, and Phase Count calculations.
   - Created `company_risk_mapping` configuration table with bounds (0.30 - 0.90).
 - **Testing:**
   - Added unit tests for `AlgorithmService`.
