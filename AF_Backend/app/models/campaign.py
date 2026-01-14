@@ -37,17 +37,3 @@ class Campaign(Base):
     escrow_account = relationship("EscrowAccount", back_populates="campaign", uselist=False)
     vote_tokens = relationship("VoteToken", back_populates="campaign")
 
-# NOTE: Future enhancement - detailed financial audit trail
-# Not part of MVP prototype.
-class CampaignHistory(Base):
-    __tablename__ = "campaign_history"
-    
-    history_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    campaign_id = Column(UUID(as_uuid=True), ForeignKey("campaign.campaign_id"))
-    final_status = Column(String(50))
-    total_raised = Column(Numeric(12, 2))
-    total_released = Column(Numeric(12, 2))
-    refunded_amount = Column(Numeric(12, 2))
-    completion_rate = Column(Numeric(5, 2))
-    was_fully_funded = Column(Boolean)
-    completed_at = Column(DateTime)
