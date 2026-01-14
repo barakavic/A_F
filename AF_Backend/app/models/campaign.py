@@ -22,7 +22,6 @@ class Campaign(Base):
     category_c = Column(Numeric(4, 3))
     num_phases_p = Column(Integer)
     alpha_value = Column(Numeric(4, 3))
-    remedial_reserve_rm = Column(Numeric(4, 3))
     
     total_contributions = Column(Numeric(12, 2), default=0)
     total_released = Column(Numeric(12, 2), default=0)
@@ -39,7 +38,7 @@ class Campaign(Base):
     vote_tokens = relationship("VoteToken", back_populates="campaign")
 
 # NOTE: Future enhancement - detailed financial audit trail
-# Not part of MVP prototype. Use fundraiser_campaign_history for FTI calculations.
+# Not part of MVP prototype.
 class CampaignHistory(Base):
     __tablename__ = "campaign_history"
     

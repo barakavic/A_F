@@ -28,16 +28,6 @@ class CampaignService:
             raise ValueError("Fundraiser profile not found")
             
         # 2. Calculate Algorithmic Parameters
-        # Assuming we have access to user rating/history. For now using placeholders or profile data if available.
-        # In a real scenario, we'd fetch these stats.
-        # Placeholder values for FTI calculation:
-        fti = AlgorithmService.calculate_fti(
-            tenure_months=12, # TODO: Fetch real tenure
-            successful_campaigns=1, # TODO: Fetch real stats
-            high_value_projects=0,
-            rating=4.5
-        )
-        
         # Risk Factor C
         # Using L1/L2 weights from profile if available, else defaults
         l1_risk = float(profile.industry_l1.l1_risk_weight) if profile.industry_l1 else 0.5
@@ -48,11 +38,7 @@ class CampaignService:
         alpha = AlgorithmService.calculate_alpha(duration_months)
         
         # Phase Count P
-        phase_count = AlgorithmService.calculate_phase_count(risk_c, funding_goal)
-        
-        # Remedial Reserve Rm
-        # Disabled for donation-based prototype
-        reserve_rm = 0.0 # AlgorithmService.calculate_remedial_reserve(fti, duration_months)
+        phase_count = AlgorithmService.calculate_phase_count(risk_c, funding_goal, duration_months)
         
         # 3. Create Campaign Record
         campaign = Campaign(
@@ -65,7 +51,6 @@ class CampaignService:
             category_c=risk_c,
             num_phases_p=phase_count,
             alpha_value=alpha,
-            remedial_reserve_rm=reserve_rm,
             status='draft'
         )
         db.add(campaign)
