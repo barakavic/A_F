@@ -8,6 +8,8 @@ We use **pytest** as our primary testing framework. Our strategy focuses on:
 - **Mocking**: Using in-memory SQLite databases for fast, isolated tests.
 - **Cryptographic Verification**: Ensuring that digital signatures and hashing logic are mathematically sound.
 
+**View the latest [Test Report](../Documentation/TEST_REPORT.md) for detailed results.**
+
 ## 2. Test Suites
 
 ### Algorithm Service (`tests/unit/test_algorithm_service.py`)

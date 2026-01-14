@@ -14,7 +14,7 @@ This document outlines the remaining tasks and the strategic approach for comple
 - [x] **Contribution Flow**: Implement `/api/v1/contributions` to handle pledges.
 - [x] **Vote Token Generation**: Automatically generate unique `VoteToken` entries upon successful contribution.
 - [x] **Digital Signatures**: Implement Keccak-256 hashing and signature verification for milestone approval.
-- [ ] **Vote Tallying**: Build the background logic to check for 75% quorum and trigger fund release.
+- [x] **Vote Tallying**: Build the background logic to check for 75% quorum and trigger fund release.
 - [ ] **Vote Waiving**: Implement logic to allow contributors to pre-approve all milestones.
 
 ### 1.3 Financial Operations (Simulated Escrow)

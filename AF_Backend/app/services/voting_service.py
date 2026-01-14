@@ -95,20 +95,25 @@ class VotingService:
         """
         Tally votes for a milestone and determine outcome.
         Consensus required: >= 75% YES.
+        Note: is_waived=True counts as an automatic YES.
         """
         votes = db.query(VoteSubmission).filter(VoteSubmission.milestone_id == milestone_id).all()
         
         total_votes = len(votes)
-        yes_votes = sum(1 for v in votes if v.vote_value == 'yes')
-        no_votes = sum(1 for v in votes if v.vote_value == 'no')
-        
         if total_votes == 0:
+            # If no one voted, it's a rejection by default (no quorum)
+            yes_votes = 0
+            no_votes = 0
             yes_percentage = 0
         else:
+            # Count 'yes' votes + 'waived' votes
+            yes_votes = sum(1 for v in votes if v.vote_value == 'yes' or v.is_waived is True)
+            no_votes = total_votes - yes_votes
             yes_percentage = (yes_votes / total_votes) * 100
             
         outcome = 'approved' if yes_percentage >= 75 else 'rejected'
         
+        # Create the result record
         result = VoteResult(
             milestone_id=milestone_id,
             total_yes=yes_votes,
@@ -122,7 +127,8 @@ class VotingService:
         
         # Update milestone status
         milestone = db.query(Milestone).filter(Milestone.milestone_id == milestone_id).first()
-        milestone.status = outcome
+        if milestone:
+            milestone.status = outcome
         
         db.commit()
         db.refresh(result)

@@ -76,7 +76,7 @@ ignition/deployments/chain-31337
 
 
 #Allowing the documentation directory through
-!/documentation
+/Documentation
 # Miscellaneous
 *.class
 *.lock
@@ -86,7 +86,6 @@ ignition/deployments/chain-31337
 .buildlog/
 .history
 
-/Documentation
 
 # Flutter repo-specific
 /bin/cache/
@@ -199,4 +198,4 @@ app.*.symbols
 
 
 # The markdown files
-.md
+#!.md
