@@ -86,4 +86,19 @@
 - **Testing:**
   - Added `test_escrow_service.py` to verify release logic and balance integrity.
   - Total test suite expanded to **13 PASSED tests**.
-+
+## v0.5.0 - Automated Refunds & Test Suite Standardization
+**Date:** 2026-01-15
+**Status:** Completed
+
+### Added
+- **Refund Mechanism:**
+  - Implemented `RefundService` for pro-rata contributor refunds.
+  - Integrated automated refund triggers into `VotingService` (75% rejection threshold).
+- **Database Architecture:**
+  - Implemented platform-independent `GUID` type for SQLite/PostgreSQL compatibility.
+  - Refactored all models to use `GUID` for primary and foreign keys.
+- **Testing & Quality:**
+  - Added `test_refund_logic.py` (Full refund flow).
+  - Added `test_partial_refund.py` (Pro-rata refund after disbursement).
+  - Standardized the entire test suite to use real models, eliminating test pollution.
+  - Total test suite expanded to **15 PASSED tests**.
