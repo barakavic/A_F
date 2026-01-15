@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Numeric, Enum
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
+from app.db.base_class import GUID
 import uuid
 from datetime import datetime
 from app.db.base_class import Base
@@ -8,13 +8,13 @@ from app.db.base_class import Base
 class TransactionLedger(Base):
     __tablename__ = "transaction_ledger"
     
-    transaction_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    escrow_id = Column(UUID(as_uuid=True), ForeignKey("escrow_account.escrow_id"))
+    transaction_id = Column(GUID(), primary_key=True, default=uuid.uuid4)
+    escrow_id = Column(GUID(), ForeignKey("escrow_account.escrow_id"))
     
     # Link to the source transaction record
-    contribution_id = Column(UUID(as_uuid=True), ForeignKey("contribution.contribution_id"), nullable=True)
-    fund_release_id = Column(UUID(as_uuid=True), ForeignKey("fund_release.release_id"), nullable=True)
-    refund_event_id = Column(UUID(as_uuid=True), ForeignKey("refund_event.refund_id"), nullable=True)
+    contribution_id = Column(GUID(), ForeignKey("contribution.contribution_id"), nullable=True)
+    fund_release_id = Column(GUID(), ForeignKey("fund_release.release_id"), nullable=True)
+    refund_event_id = Column(GUID(), ForeignKey("refund_event.refund_id"), nullable=True)
     
     transaction_type = Column(Enum('contribution', 'disbursement', 'refund', name='transaction_type'))
     amount = Column(Numeric(12, 2))
@@ -31,9 +31,9 @@ class TransactionLedger(Base):
 class Contribution(Base):
     __tablename__ = "contribution"
     
-    contribution_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    campaign_id = Column(UUID(as_uuid=True), ForeignKey("campaign.campaign_id"))
-    contributor_id = Column(UUID(as_uuid=True), ForeignKey("account.account_id"))
+    contribution_id = Column(GUID(), primary_key=True, default=uuid.uuid4)
+    campaign_id = Column(GUID(), ForeignKey("campaign.campaign_id"))
+    contributor_id = Column(GUID(), ForeignKey("account.account_id"))
     
     amount = Column(Numeric(12, 2))
     status = Column(Enum('pending', 'completed', 'failed', 'refunded', name='contribution_status'), default='pending')

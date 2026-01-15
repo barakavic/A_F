@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Numeric, Enum, Text, UniqueConstraint, Boolean
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
+from app.db.base_class import GUID
 import uuid
 from datetime import datetime
 from app.db.base_class import Base
@@ -8,8 +8,8 @@ from app.db.base_class import Base
 class VoteResult(Base):
     __tablename__ = "vote_result"
     
-    result_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    milestone_id = Column(UUID(as_uuid=True), ForeignKey("milestone.milestone_id"))
+    result_id = Column(GUID(), primary_key=True, default=uuid.uuid4)
+    milestone_id = Column(GUID(), ForeignKey("milestone.milestone_id"))
     
     total_yes = Column(Integer, default=0)
     total_no = Column(Integer, default=0)
@@ -24,9 +24,9 @@ class VoteResult(Base):
 class VoteToken(Base):
     __tablename__ = "vote_token"
     
-    token_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    campaign_id = Column(UUID(as_uuid=True), ForeignKey("campaign.campaign_id"))
-    contributor_id = Column(UUID(as_uuid=True), ForeignKey("account.account_id")) # Linking to User (contributor)
+    token_id = Column(GUID(), primary_key=True, default=uuid.uuid4)
+    campaign_id = Column(GUID(), ForeignKey("campaign.campaign_id"))
+    contributor_id = Column(GUID(), ForeignKey("account.account_id")) # Linking to User (contributor)
     
     token_hash = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -37,9 +37,9 @@ class VoteToken(Base):
 class VoteSubmission(Base):
     __tablename__ = "vote_submission"
     
-    vote_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    milestone_id = Column(UUID(as_uuid=True), ForeignKey("milestone.milestone_id"))
-    contributor_id = Column(UUID(as_uuid=True), ForeignKey("account.account_id"))
+    vote_id = Column(GUID(), primary_key=True, default=uuid.uuid4)
+    milestone_id = Column(GUID(), ForeignKey("milestone.milestone_id"))
+    contributor_id = Column(GUID(), ForeignKey("account.account_id"))
     
     vote_hash = Column(Text)
     signature = Column(Text) # Digital signature of the vote

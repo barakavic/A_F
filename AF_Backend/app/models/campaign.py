@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Numeric, Enum, Text, Boolean
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
+from app.db.base_class import GUID
 import uuid
 from datetime import datetime
 from app.db.base_class import Base
@@ -8,8 +8,8 @@ from app.db.base_class import Base
 class Campaign(Base):
     __tablename__ = "campaign"
     
-    campaign_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    fundraiser_id = Column(UUID(as_uuid=True), ForeignKey("fundraiser_profile.fundraiser_id"))
+    campaign_id = Column(GUID(), primary_key=True, default=uuid.uuid4)
+    fundraiser_id = Column(GUID(), ForeignKey("fundraiser_profile.fundraiser_id"))
     title = Column(String(200))
     description = Column(Text)
     funding_goal_f = Column(Numeric(12, 2))

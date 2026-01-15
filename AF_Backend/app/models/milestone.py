@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Numeric, Enum, Text
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
+from app.db.base_class import GUID
 import uuid
 from datetime import datetime
 from app.db.base_class import Base
@@ -8,8 +8,8 @@ from app.db.base_class import Base
 class Milestone(Base):
     __tablename__ = "milestone"
     
-    milestone_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    campaign_id = Column(UUID(as_uuid=True), ForeignKey("campaign.campaign_id"))
+    milestone_id = Column(GUID(), primary_key=True, default=uuid.uuid4)
+    campaign_id = Column(GUID(), ForeignKey("campaign.campaign_id"))
     
     phase_index = Column(Integer)
     description = Column(Text)  # What the fundraiser will deliver in this phase

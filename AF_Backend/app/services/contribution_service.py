@@ -46,28 +46,25 @@ class ContributionService:
         db.flush() # Get contribution_id
 
         # 3. Update Campaign
-        campaign.total_contributions = (campaign.total_contributions or 0) + amount
+        from decimal import Decimal
+        campaign.total_contributions = (campaign.total_contributions or Decimal('0')) + Decimal(str(amount))
         
-        # 4. Update Escrow
+        # 4. Update Escrow & 5. Transaction Ledger (Using TransactionService for atomic updates)
         escrow = db.query(EscrowAccount).filter(EscrowAccount.campaign_id == campaign_id).first()
         if not escrow:
-            # Should have been created with campaign, but fallback just in case
             escrow = EscrowAccount(campaign_id=campaign_id)
             db.add(escrow)
             db.flush()
             
-        escrow.total_contributions = (escrow.total_contributions or 0) + amount
-        escrow.balance = (escrow.balance or 0) + amount
-        
-        # 5. Transaction Ledger
-        ledger_entry = TransactionLedger(
-            escrow_id=escrow.escrow_id,
+        from app.services.transaction_service import TransactionService
+        from decimal import Decimal
+        TransactionService.record_contribution(
+            db=db,
             contribution_id=contribution.contribution_id,
-            transaction_type='contribution',
-            amount=amount,
-            reference_code=reference_code or f"SIM-{uuid.uuid4().hex[:8].upper()}"
+            escrow_id=escrow.escrow_id,
+            amount=Decimal(str(amount)),
+            reference_code=reference_code
         )
-        db.add(ledger_entry)
 
         # 6. Generate Vote Token
         # Check if contributor already has a token for this campaign
