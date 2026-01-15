@@ -34,8 +34,8 @@ class EscrowService:
         # 2. Calculate release amount
         # Note: In a real scenario, we might release based on TOTAL RAISED if target wasn't met,
         # but here we assume target is met or we release proportional to target.
-        # Let's use target_amount * weight
-        release_amount = Decimal(str(campaign.target_amount)) * Decimal(str(milestone.weight))
+        # Let's use funding_goal_f * phase_weight_wi
+        release_amount = Decimal(str(campaign.funding_goal_f)) * Decimal(str(milestone.phase_weight_wi))
 
         # 3. Get Escrow Account
         escrow = db.query(EscrowAccount).filter(EscrowAccount.campaign_id == campaign.campaign_id).first()

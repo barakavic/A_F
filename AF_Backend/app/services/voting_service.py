@@ -194,6 +194,15 @@ class VotingService:
         milestone = db.query(Milestone).filter(Milestone.milestone_id == milestone_id).first()
         if milestone:
             milestone.status = outcome
+            
+            # TRIGGER REFUND: If milestone is rejected, the whole campaign is refunded
+            if outcome == 'rejected':
+                from app.services.refund_service import RefundService
+                RefundService.process_campaign_refunds(
+                    db=db, 
+                    campaign_id=milestone.campaign_id,
+                    reason=f"Milestone {milestone.description} rejected by contributors"
+                )
         
         db.commit()
         db.refresh(result)
