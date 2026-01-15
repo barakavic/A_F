@@ -7,3 +7,5 @@ from app.models.milestone import Milestone  # noqa
 from app.models.vote import VoteResult, VoteToken, VoteSubmission  # noqa
 from app.models.escrow import EscrowAccount  # noqa
 from app.models.transaction import TransactionLedger, Contribution  # noqa
+from app.models.refund_event import RefundEvent  # noqa
+from app.models.fund_release import FundRelease  # noqa
