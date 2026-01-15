@@ -14,6 +14,14 @@ class Settings(BaseSettings):
     allowed_methods_list: list = ["*"]
     ALLOWED_HEADERS: str = "*"
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/ascentfin"
+    REDIS_URL: str = "redis://localhost:6379/0"
+    
+    # M-Pesa Configuration
+    MPESA_ENVIRONMENT: str = "sandbox"  # sandbox or production
+    MPESA_CONSUMER_KEY: str = ""
+    MPESA_CONSUMER_SECRET: str = ""
+    MPESA_PASSKEY: str = ""
+    MPESA_SHORTCODE: str = "174379"  # Default sandbox shortcode
     
     class Config:
         case_sensitive = True
