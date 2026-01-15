@@ -1,78 +1,16 @@
 import pytest
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Numeric, Enum, Boolean, Text, ForeignKey, UniqueConstraint
-from sqlalchemy.orm import sessionmaker, relationship, declarative_base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from app.db.base import Base
+from app.models.user import User
+from app.models.campaign import Campaign
+from app.models.escrow import EscrowAccount
+from app.models.transaction import Contribution, TransactionLedger
+from app.models.vote import VoteToken
+from app.services.contribution_service import ContributionService
 import uuid
-from datetime import datetime
 
-# Use a standard Base for testing
-Base = declarative_base()
-
-class User(Base):
-    __tablename__ = "account"
-    account_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    role = Column(String)
-
-class Campaign(Base):
-    __tablename__ = "campaign"
-    campaign_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    fundraiser_id = Column(String)
-    title = Column(String)
-    funding_goal_f = Column(Numeric)
-    total_contributions = Column(Numeric, default=0)
-
-class EscrowAccount(Base):
-    __tablename__ = "escrow_account"
-    escrow_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    campaign_id = Column(String, ForeignKey("campaign.campaign_id"))
-    total_contributions = Column(Numeric, default=0)
-    balance = Column(Numeric, default=0)
-
-class Contribution(Base):
-    __tablename__ = "contribution"
-    contribution_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    campaign_id = Column(String, ForeignKey("campaign.campaign_id"))
-    contributor_id = Column(String, ForeignKey("account.account_id"))
-    amount = Column(Numeric)
-    status = Column(String, default='pending')
-
-class TransactionLedger(Base):
-    __tablename__ = "transaction_ledger"
-    transaction_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    escrow_id = Column(String, ForeignKey("escrow_account.escrow_id"))
-    contribution_id = Column(String, ForeignKey("contribution.contribution_id"), nullable=True)
-    transaction_type = Column(String)
-    amount = Column(Numeric)
-    reference_code = Column(String)
-
-class VoteToken(Base):
-    __tablename__ = "vote_token"
-    token_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    campaign_id = Column(String, ForeignKey("campaign.campaign_id"))
-    contributor_id = Column(String, ForeignKey("account.account_id"))
-    token_hash = Column(Text)
-
-# The actual logic we want to test (replicated from ContributionService)
-class ContributionService:
-    @staticmethod
-    def create_contribution(db, campaign_id, contributor_id, amount):
-        campaign = db.query(Campaign).filter(Campaign.campaign_id == str(campaign_id)).first()
-        contribution = Contribution(campaign_id=str(campaign_id), contributor_id=str(contributor_id), amount=amount, status='completed')
-        db.add(contribution)
-        db.flush()
-        campaign.total_contributions = (campaign.total_contributions or 0) + amount
-        escrow = db.query(EscrowAccount).filter(EscrowAccount.campaign_id == str(campaign_id)).first()
-        escrow.total_contributions = (escrow.total_contributions or 0) + amount
-        escrow.balance = (escrow.balance or 0) + amount
-        ledger_entry = TransactionLedger(escrow_id=escrow.escrow_id, contribution_id=contribution.contribution_id, transaction_type='contribution', amount=amount, reference_code="TEST")
-        db.add(ledger_entry)
-        existing_token = db.query(VoteToken).filter(VoteToken.campaign_id == str(campaign_id), VoteToken.contributor_id == str(contributor_id)).first()
-        if not existing_token:
-            new_token = VoteToken(campaign_id=str(campaign_id), contributor_id=str(contributor_id), token_hash="hash")
-            db.add(new_token)
-        db.commit()
-        return {"contribution": contribution}
-
-# Setup in-memory SQLite for testing
+# Setup in-memory SQLite
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -88,9 +26,10 @@ def db():
         Base.metadata.drop_all(bind=engine)
 
 def test_create_contribution_logic(db):
-    campaign_id = str(uuid.uuid4())
-    contributor_id = str(uuid.uuid4())
-    db.add(User(account_id=contributor_id))
+    campaign_id = uuid.uuid4()
+    contributor_id = uuid.uuid4()
+    
+    db.add(User(account_id=contributor_id, email="c@test.com", password_hash="h", role='contributor'))
     campaign = Campaign(campaign_id=campaign_id, title="Test", funding_goal_f=1000.0)
     db.add(campaign)
     escrow = EscrowAccount(campaign_id=campaign_id)
