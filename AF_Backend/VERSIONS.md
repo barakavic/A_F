@@ -102,3 +102,30 @@
   - Added `test_partial_refund.py` (Pro-rata refund after disbursement).
   - Standardized the entire test suite to use real models, eliminating test pollution.
   - Total test suite expanded to **15 PASSED tests**.
+
+## v0.6.0 - M-Pesa STK Push & Redis Integration
+**Date:** 2026-01-15
+**Status:** Completed
+
+### Added
+- **Redis Integration:**
+  - Connected to Redis container for temporary payment session storage.
+  - Implemented TTL-based session management (10-minute expiration).
+  - Created `app/core/redis.py` with session utilities: `save_stk_session`, `get_stk_session`, `delete_stk_session`.
+- **Payment Infrastructure:**
+  - Implemented `PaymentService` with STK Push initiation and callback processing (Simulator mode).
+  - Created `/api/v1/payments/stk-push` endpoint for payment initiation.
+  - Created `/api/v1/payments/callback` endpoint for M-Pesa callback handling.
+  - Integrated payment flow with existing `ContributionService`, `EscrowService`, and `TransactionService`.
+- **Testing:**
+  - Added `test_payment_flow.py` with 3 comprehensive tests.
+  - Verified STK Push initiation, successful callbacks, and failed callbacks.
+  - Total test suite expanded to **18 PASSED tests**.
+- **Configuration:**
+  - Added M-Pesa settings to `app/core/config.py` (MPESA_ENVIRONMENT, CONSUMER_KEY, etc.).
+  - Configured for easy swap between simulator and production modes.
+
+### Technical Details
+- **Simulator Mode**: Generates fake CheckoutRequestIDs for local development without external dependencies.
+- **Production Ready**: Designed to switch to real Daraja API by updating environment variables.
+- **Clean Database**: Only successful payments create permanent SQL records; failed/cancelled payments leave no trace.
