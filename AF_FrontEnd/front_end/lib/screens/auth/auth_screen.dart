@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:front_end/login_page_ui.dart';
-import 'package:front_end/singup_page_ui.dart';
+import 'package:front_end/screens/auth/login_screen.dart';
+import 'package:front_end/screens/auth/signup_screen.dart';
+
 class AuthScreen extends StatefulWidget {
-const AuthScreen({super.key});
+  const AuthScreen({super.key});
 
-@override
-State<AuthScreen> createState() => _AuthScreenState();
-
+  @override
+  State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen>{
+class _AuthScreenState extends State<AuthScreen> {
   bool _showLoginPage = true;
 
-  void _toggleView(){
+  void _toggleView() {
     setState(() {
       _showLoginPage = !_showLoginPage;
     });
@@ -20,27 +20,24 @@ class _AuthScreenState extends State<AuthScreen>{
 
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       appBar: AppBar(
         title: Text(_showLoginPage ? 'Login' : 'SignUp'),
         centerTitle: true,
       ),
-
       body: Stack(
         children: <Widget>[
           Visibility(
-          visible: _showLoginPage,
-          maintainState: true,
-          child: LoginPageUI(
-            onToggleView: _toggleView,
+            visible: _showLoginPage,
+            maintainState: true,
+            child: LoginScreen(
+              onToggleView: _toggleView,
+            ),
           ),
-          ),
-
           Visibility(
             visible: !_showLoginPage,
             maintainState: true,
-            child: SignupPageUI(
+            child: SignupScreen(
               onToggleView: _toggleView,
             ),
           )
@@ -48,6 +45,4 @@ class _AuthScreenState extends State<AuthScreen>{
       ),
     );
   }
-
-
 }

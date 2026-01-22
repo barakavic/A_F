@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-// import 'package:front_end/AuthScreen.dart';
-import 'package:front_end/login_options_page.dart';
+import 'package:front_end/screens/auth/login_options_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 const supabaseUrl = 'https://fchaxglq1scawnbayqk.supabase.co';
