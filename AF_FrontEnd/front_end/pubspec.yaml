@@ -44,6 +44,7 @@ dependencies:
   
   # Local Storage
   shared_preferences: ^2.2.2
+  path_provider: ^2.1.2
   
   # Authentication (keeping your existing setup)
   firebase_auth: ^4.17.4
