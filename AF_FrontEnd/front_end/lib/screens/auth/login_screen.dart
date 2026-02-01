@@ -84,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _emailController,
-                      validator: Validators.validateRequired, // Using basic required for now as it could be phone or email
+                      validator: (value) => Validators.validateRequired(value, 'Email or Phone Number'), 
                       decoration: _buildInputDecoration(),
                     ),
                     const SizedBox(height: 24),

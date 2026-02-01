@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:front_end/screens/auth/login_options_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
+import 'providers/auth_provider.dart';
 
 const supabaseUrl = 'https://fchaxglq1scawnbayqk.supabase.co';
 const supabaseKey = String.fromEnvironment('SUPABASE_KEY');
+
 Future <void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -11,8 +14,14 @@ Future <void> main() async{
     url: supabaseUrl,
     anonKey: supabaseKey
   );
+  
   runApp(
-    const MyApp()
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
+      child: const MyApp(),
+    ),
   );
 }
 class MyApp extends StatelessWidget{

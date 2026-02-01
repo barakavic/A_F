@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:front_end/screens/auth/auth_screen.dart';
+import 'package:front_end/screens/auth/login_screen.dart';
 import 'package:front_end/screens/shared/homepage.dart';
 
 class LoginOptionsPage extends StatelessWidget {
@@ -29,7 +29,7 @@ class LoginOptionsPage extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => AuthScreen()),
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
                   );
                 },
                 label: Text("Continue with Email"),
