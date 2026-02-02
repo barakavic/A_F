@@ -107,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: ElevatedButton(
                         onPressed: authProvider.isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.textPrimary, // Dark grey/black
+                          backgroundColor: AppColors.primary, // Brand Orange
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -170,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: const Text(
                             'Sign Up',
                             style: TextStyle(
-                              color: AppColors.textPrimary,
+                              color: AppColors.primary,
                               fontWeight: FontWeight.bold,
                               decoration: TextDecoration.underline,
                             ),
