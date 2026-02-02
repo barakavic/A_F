@@ -5,6 +5,8 @@ import '../../core/constants/app_text_styles.dart';
 import '../../core/utils/validators.dart';
 import '../../providers/auth_provider.dart';
 import 'signup_screen.dart';
+import '../fundraiser/fundraiser_dashboard.dart';
+import '../contributor/contributor_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -35,10 +37,18 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (success && mounted) {
-        // TODO: Navigate to Dashboard based on role
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login Successful! Navigating to Dashboard...')),
-        );
+        final role = authProvider.userRole;
+        if (role == 'fundraiser') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const FundraiserDashboard()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const ContributorDashboard()),
+          );
+        }
       } else if (mounted && authProvider.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

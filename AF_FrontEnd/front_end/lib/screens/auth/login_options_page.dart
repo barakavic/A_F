@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:front_end/screens/auth/login_screen.dart';
-import 'package:front_end/screens/shared/homepage.dart';
+import '../fundraiser/fundraiser_dashboard.dart';
+import '../contributor/contributor_dashboard.dart';
 
 class LoginOptionsPage extends StatelessWidget {
   const LoginOptionsPage({super.key});
@@ -67,13 +68,11 @@ class LoginOptionsPage extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => AscentHomepage(),
-                    ),
+                    MaterialPageRoute(builder: (context) => const FundraiserDashboard()),
                   );
                 },
                 label: const Text("Continue with SSO"),
-                icon: Icon(Icons.key),
+                icon: const Icon(Icons.key),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orangeAccent,
                   foregroundColor: Colors.white,
