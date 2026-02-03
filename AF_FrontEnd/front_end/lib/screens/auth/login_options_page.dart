@@ -66,9 +66,46 @@ class LoginOptionsPage extends StatelessWidget {
               ),
               ElevatedButton.icon(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const FundraiserDashboard()),
+                  showModalBottomSheet(
+                    context: context,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                    builder: (context) => Container(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            "Select Dashboard",
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 20),
+                          ListTile(
+                            leading: const Icon(Icons.person, color: Colors.blue),
+                            title: const Text("Contributor Dashboard"),
+                            onTap: () {
+                              Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const ContributorDashboard()),
+                              );
+                            },
+                          ),
+                          ListTile(
+                            leading: const Icon(Icons.campaign, color: Colors.orangeAccent),
+                            title: const Text("Fundraiser Dashboard"),
+                            onTap: () {
+                              Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const FundraiserDashboard()),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                   );
                 },
                 label: const Text("Continue with SSO"),
