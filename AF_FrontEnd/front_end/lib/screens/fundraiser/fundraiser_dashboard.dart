@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import 'active_projects_page.dart';
+import 'fundraiser_wallet_page.dart';
 
 class FundraiserDashboard extends StatefulWidget {
   const FundraiserDashboard({super.key});
@@ -36,9 +37,9 @@ class _FundraiserDashboardState extends State<FundraiserDashboard> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          _buildSummaryHome(),      // Tab 0: Home/Overview
-          const ActiveProjectsPage(),  // Tab 1: Project List (Modularized)
-          const Center(child: Text("Wallet Content")), 
+          _buildSummaryHome(),      
+          const ActiveProjectsPage(),  
+          const FundraiserWalletPage(), // Linked Wallet Page
         ],
       ),
       bottomNavigationBar: _buildBottomNav(),

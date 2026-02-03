@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import 'discover_projects_page.dart';
+import 'contributor_wallet_page.dart';
 
 class ContributorDashboard extends StatefulWidget {
   const ContributorDashboard({super.key});
@@ -36,9 +37,9 @@ class _ContributorDashboardState extends State<ContributorDashboard> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          _buildPortfolioHome(),   // Tab 0: Home (Portfolio)
-          const DiscoverProjectsPage(), // Tab 1: Discovery (Trend Line) - MODULARIZED
-          const Center(child: Text("Wallet Content")), 
+          _buildPortfolioHome(),   
+          const DiscoverProjectsPage(), 
+          const ContributorWalletPage(), // Linked Wallet Page
         ],
       ),
       bottomNavigationBar: _buildBottomNav(),
