@@ -12,7 +12,7 @@ services:
       POSTGRES_DB: ascent_fin_db
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5432:5432"
+      - "5435:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -29,7 +29,7 @@ services:
     container_name: ascent_fin_redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis_data:/data
     networks:
