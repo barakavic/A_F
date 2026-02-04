@@ -12,6 +12,7 @@ class FundraiserDashboard extends StatefulWidget {
 
 class _FundraiserDashboardState extends State<FundraiserDashboard> {
   int _selectedIndex = 0;
+  final GlobalKey<ActiveProjectsPageState> _activeProjectsKey = GlobalKey<ActiveProjectsPageState>();
 
   @override
   Widget build(BuildContext context) {
@@ -38,14 +39,16 @@ class _FundraiserDashboardState extends State<FundraiserDashboard> {
         index: _selectedIndex,
         children: [
           _buildSummaryHome(),      
-          const ActiveProjectsPage(),  
+          ActiveProjectsPage(key: _activeProjectsKey),  
           const FundraiserWalletPage(), // Linked Wallet Page
         ],
       ),
       bottomNavigationBar: _buildBottomNav(),
       floatingActionButton: _selectedIndex == 1 
         ? FloatingActionButton(
-            onPressed: () {},
+            onPressed: () {
+              _activeProjectsKey.currentState?.showCreateCampaignSheet();
+            },
             backgroundColor: AppColors.primary,
             child: const Icon(Icons.add, color: Colors.white),
           )
