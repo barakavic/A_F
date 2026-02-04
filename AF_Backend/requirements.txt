@@ -21,6 +21,7 @@ pyjwt==2.8.0
 # Cryptography (Keccak-256)
 pycryptodome==3.19.0
 eth-hash[pycryptodome]==0.5.2
+eth-account==0.10.0
 
 # Environment Variables
 python-dotenv==1.0.0

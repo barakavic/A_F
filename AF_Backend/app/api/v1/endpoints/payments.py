@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 from app.db.session import get_db
 from app.services.payment_service import PaymentService
-from app.api.deps import get_current_user
+from app.api.dependencies.deps import get_current_user
 from app.models.user import User
 import uuid
 from typing import Optional
