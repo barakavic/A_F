@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'api_service.dart';
 import '../../core/config/api_config.dart';
@@ -15,19 +16,22 @@ class AuthService {
       final response = await _apiService.post(
         ApiConfig.login,
         data: {
-          'username': email, // FastAPI OAuth2 usually expects 'username'
+          'username': email,
           'password': password,
         },
+        options: Options(
+          contentType: 'application/x-www-form-urlencoded',
+        ),
       );
 
       if (response.statusCode == 200) {
         final token = response.data['access_token'];
-        final role = response.data['role'];
+        final role = response.data['role'] ?? 'fundraiser'; // Default to fundraiser if not provided
 
         await _saveAuthData(token, role);
         return response.data;
       } else {
-        throw Exception('Failed to login');
+        throw Exception('Failed to login: ${response.statusCode}');
       }
     } catch (e) {
       rethrow;

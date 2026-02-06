@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:front_end/screens/auth/login_screen.dart';
+import 'package:front_end/data/services/auth_service.dart';
 import '../fundraiser/fundraiser_dashboard.dart';
 import '../contributor/contributor_dashboard.dart';
 
@@ -65,48 +66,41 @@ class LoginOptionsPage extends StatelessWidget {
                 height: 16,
               ),
               ElevatedButton.icon(
-                onPressed: () {
-                  showModalBottomSheet(
+                onPressed: () async {
+                  final authService = AuthService();
+                  // Show loading indicator
+                  showDialog(
                     context: context,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                    ),
-                    builder: (context) => Container(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                            "Select Dashboard",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 20),
-                          ListTile(
-                            leading: const Icon(Icons.person, color: Colors.blue),
-                            title: const Text("Contributor Dashboard"),
-                            onTap: () {
-                              Navigator.pop(context);
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const ContributorDashboard()),
-                              );
-                            },
-                          ),
-                          ListTile(
-                            leading: const Icon(Icons.campaign, color: Colors.orangeAccent),
-                            title: const Text("Fundraiser Dashboard"),
-                            onTap: () {
-                              Navigator.pop(context);
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const FundraiserDashboard()),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
+                    barrierDismissible: false,
+                    builder: (context) => const Center(child: CircularProgressIndicator()),
                   );
+
+                  try {
+                    final result = await authService.login('test@ascentfin.com', 'password123');
+                    final role = result['role'] ?? 'fundraiser';
+
+                    if (context.mounted) {
+                      Navigator.pop(context); // Remove loading
+                      if (role == 'fundraiser') {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => const FundraiserDashboard()),
+                        );
+                      } else {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => const ContributorDashboard()),
+                        );
+                      }
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      Navigator.pop(context); // Remove loading
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Bypass login failed: $e")),
+                      );
+                    }
+                  }
                 },
                 label: const Text("Continue with SSO"),
                 icon: const Icon(Icons.key),
