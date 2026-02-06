@@ -1,11 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/config/api_config.dart';
 import 'log_service.dart';
 
 class ApiService {
   late final Dio _dio;
   final LogService _logService = LogService();
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   ApiService() {
     _dio = Dio(
@@ -27,7 +29,11 @@ class ApiService {
   void _initializeInterceptors() {
     _dio.interceptors.add(
       InterceptorsWrapper(
-        onRequest: (options, handler) {
+        onRequest: (options, handler) async {
+          final token = await _storage.read(key: 'jwt_token');
+          if (token != null) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
           final message = 'REQUEST[${options.method}] => PATH: ${options.path} | DATA: ${options.data}';
           _log(message);
           return handler.next(options);

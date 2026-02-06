@@ -35,6 +35,7 @@ class User(UserBase):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    role: str
 
 class TokenData(BaseModel):
     account_id: Optional[str] = None

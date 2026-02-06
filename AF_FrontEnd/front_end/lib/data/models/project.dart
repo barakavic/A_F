@@ -24,12 +24,19 @@ class Project {
   });
 
   factory Project.fromJson(Map<String, dynamic> json) {
+    double parseDouble(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0.0;
+      return 0.0;
+    }
+
     return Project(
       id: json['campaign_id']?.toString(),
       title: json['title'] ?? 'Untitled',
       description: json['description'] ?? '',
-      goalAmount: (json['funding_goal_f'] as num?)?.toDouble() ?? 0.0,
-      raisedAmount: (json['total_contributions'] as num?)?.toDouble() ?? 0.0,
+      goalAmount: parseDouble(json['funding_goal_f']),
+      raisedAmount: parseDouble(json['total_contributions']),
       status: json['status'] ?? 'draft',
       durationMonths: json['duration_d'] ?? 12,
       phaseProgress: 0.0, 
@@ -41,12 +48,9 @@ class Project {
     return {
       'title': title,
       'description': description,
-      'funding_goal_f': goalAmount,
-      'duration_d': durationMonths,
-      'fundraiser_id': fundraiserId,
-      'campaign_type_ct': 'donation', 
-      'category_c': 0.5, 
-      'alpha_value': 0.5, 
+      'funding_goal': goalAmount,
+      'duration_months': durationMonths,
+      'campaign_type': 'donation', 
     };
   }
 }

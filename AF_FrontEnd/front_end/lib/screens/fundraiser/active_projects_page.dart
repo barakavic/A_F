@@ -1,32 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../data/models/project.dart';
-import '../../data/services/project_service.dart';
+import '../../providers/project_provider.dart';
 import 'project_management_detail.dart';
-
 import 'widgets/create_campaign_form.dart';
 
-class ActiveProjectsPage extends StatefulWidget {
+class ActiveProjectsPage extends ConsumerStatefulWidget {
   const ActiveProjectsPage({super.key});
 
   @override
-  State<ActiveProjectsPage> createState() => ActiveProjectsPageState();
+  ConsumerState<ActiveProjectsPage> createState() => ActiveProjectsPageState();
 }
 
-class ActiveProjectsPageState extends State<ActiveProjectsPage> {
-  final ProjectService _projectService = ProjectService();
-  late Future<List<Project>> _projectsFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _refreshProjects();
-  }
-
+class ActiveProjectsPageState extends ConsumerState<ActiveProjectsPage> {
   void _refreshProjects() {
-    setState(() {
-      _projectsFuture = _projectService.getActiveProjects();
-    });
+    ref.invalidate(activeProjectsProvider);
   }
 
   void showCreateCampaignSheet() {
@@ -42,7 +31,7 @@ class ActiveProjectsPageState extends State<ActiveProjectsPage> {
         ),
         child: CreateCampaignForm(
           onSubmit: (project) async {
-            final success = await _projectService.createProject(project);
+            final success = await ref.read(projectServiceProvider).createProject(project);
             if (success && mounted) {
               Navigator.pop(context); // Close sheet
               _refreshProjects(); // Reload list
@@ -84,26 +73,33 @@ class ActiveProjectsPageState extends State<ActiveProjectsPage> {
             ),
           ),
           Expanded(
-            child: FutureBuilder<List<Project>>(
-              future: _projectsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return const Center(child: Text("Failed to load projects"));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return _buildEmptyState();
-                }
-
-                final projects = snapshot.data!;
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  itemCount: projects.length,
-                  itemBuilder: (context, index) {
-                    return _buildProjectCard(context, projects[index]);
-                  },
-                );
-              },
+            child: RefreshIndicator(
+              onRefresh: () async => _refreshProjects(),
+              child: ref.watch(activeProjectsProvider).when(
+                    data: (projects) {
+                      if (projects.isEmpty) return _buildEmptyState();
+                      return ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        itemCount: projects.length,
+                        itemBuilder: (context, index) {
+                          return _buildProjectCard(context, projects[index]);
+                        },
+                      );
+                    },
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (err, stack) => Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text("Failed to load projects"),
+                          TextButton(
+                            onPressed: _refreshProjects,
+                            child: const Text("Retry"),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
             ),
           ),
         ],

@@ -1,5 +1,5 @@
-import 'package:dio/dio.dart';
 import 'api_service.dart';
+import '../../core/config/api_config.dart';
 import '../models/project.dart';
 
 class ProjectService {
@@ -8,14 +8,14 @@ class ProjectService {
   // Fetch active projects
   Future<List<Project>> getActiveProjects() async {
     try {
-      final response = await _apiService.get('/campaigns/active'); 
+      final response = await _apiService.get(ApiConfig.campaigns); 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
         return data.map((json) => Project.fromJson(json)).toList();
       }
       return [];
     } catch (e) {
-      print('Error fetching projects: $e'); // In production, use logging
+      print('FETCH ERROR: $e');
       return [];
     }
   }
@@ -24,12 +24,12 @@ class ProjectService {
   Future<bool> createProject(Project project) async {
     try {
       final response = await _apiService.post(
-        '/campaigns/',
+        ApiConfig.campaigns,
         data: project.toJson(),
       );
       return response.statusCode == 201 || response.statusCode == 200;
     } catch (e) {
-      print('Error creating project: $e');
+      print('CREATE ERROR: $e');
       return false;
     }
   }

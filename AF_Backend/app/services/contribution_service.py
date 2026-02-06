@@ -33,7 +33,9 @@ class ContributionService:
         
         # In a real app, we'd check if status is 'active' or 'funded'
         # For now, let's allow contributions to 'active' or 'draft' (for testing)
-        # But ideally: if campaign.status != 'active': raise ValueError("Campaign is not active")
+        allowed_statuses = ['active', 'draft']
+        if campaign.status not in allowed_statuses:
+             raise ValueError(f"Campaign is not active. Current status: {campaign.status}")
 
         # 2. Create Contribution
         contribution = Contribution(
