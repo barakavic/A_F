@@ -25,8 +25,31 @@ class Campaign(Base):
     
     total_contributions = Column(Numeric(12, 2), default=0)
     total_released = Column(Numeric(12, 2), default=0)
+
+    # Timeline Markers
+    submitted_for_review_at = Column(DateTime, nullable=True)
+    approved_at = Column(DateTime, nullable=True)
+    launched_at = Column(DateTime, nullable=True)
+    funded_at = Column(DateTime, nullable=True)
+    phases_started_at = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+    failed_at = Column(DateTime, nullable=True)
     
-    status = Column(Enum('draft', 'active', 'funded', 'in_phases', 'completed', 'failed', name='campaign_status'), default='draft')
+    # Progress Tracking
+    current_milestone_number = Column(Integer, default=0)
+    milestones_approved_count = Column(Integer, default=0)
+    milestones_rejected_count = Column(Integer, default=0)
+    
+    status = Column(Enum(
+        'draft', 
+        'pending_review', 
+        'active', 
+        'funded', 
+        'in_phases', 
+        'completed', 
+        'failed', 
+        name='campaign_status'
+    ), default='draft')
     
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

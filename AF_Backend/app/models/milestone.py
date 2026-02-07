@@ -11,17 +11,38 @@ class Milestone(Base):
     milestone_id = Column(GUID(), primary_key=True, default=uuid.uuid4)
     campaign_id = Column(GUID(), ForeignKey("campaign.campaign_id"))
     
-    phase_index = Column(Integer)
-    description = Column(Text)  # What the fundraiser will deliver in this phase
+    milestone_number = Column(Integer, nullable=False) # 1 to P
+    description = Column(Text)
     phase_weight_wi = Column(Numeric(6, 5))
     disbursement_percentage_di = Column(Numeric(6, 5))
     release_amount = Column(Numeric(12, 2))
     
-    vote_window_start = Column(DateTime)
-    vote_window_end = Column(DateTime)
-    deadline = Column(DateTime)
+    # Timeline Markers
+    activated_at = Column(DateTime, nullable=True)
+    evidence_submitted_at = Column(DateTime, nullable=True)
+    voting_start_date = Column(DateTime, nullable=True)
+    voting_end_date = Column(DateTime, nullable=True)
+    approved_at = Column(DateTime, nullable=True)
+    rejected_at = Column(DateTime, nullable=True)
+    funds_released_at = Column(DateTime, nullable=True)
     
-    status = Column(Enum('pending', 'approved', 'rejected', 'released', name='milestone_status'), default='pending')
+    # Revision Control
+    revision_count = Column(Integer, default=0)
+    max_revisions = Column(Integer, default=1)
+    
+    status = Column(Enum(
+        'pending', 
+        'active', 
+        'evidence_submitted', 
+        'voting_open', 
+        'voting_closed', 
+        'approved', 
+        'rejected', 
+        'revision_submitted', 
+        'failed', 
+        'released', 
+        name='milestone_status'
+    ), default='pending')
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationships
