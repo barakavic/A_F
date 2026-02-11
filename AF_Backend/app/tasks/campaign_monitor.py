@@ -7,7 +7,7 @@ from app.services.milestone_workflow_service import MilestoneWorkflowService
 from app.services.financial_workflow_service import FinancialWorkflowService
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("automation.tasks")
 
 def check_funding_deadlines(db: Session):
     """

@@ -37,6 +37,7 @@ email-validator==2.1.0
 
 # Date/Time
 python-dateutil==2.8.2
+APScheduler==3.10.4
 
 # File Handling
 python-magic==0.4.27

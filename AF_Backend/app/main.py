@@ -14,6 +14,16 @@ app = FastAPI(
     debug=settings.DEBUG,
 )
 
+from app.core.scheduler import start_scheduler, stop_scheduler
+
+@app.on_event("startup")
+async def startup_event():
+    start_scheduler()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    stop_scheduler()
+
 # Mount static files for uploads
 from fastapi.staticfiles import StaticFiles
 import os
