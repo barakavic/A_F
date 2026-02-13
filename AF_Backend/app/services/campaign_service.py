@@ -60,16 +60,13 @@ class CampaignService:
         db.add(escrow)
         
         # 5. Generate Milestones
-        # Calculate weights
         weights = AlgorithmService.calculate_milestone_weights(phase_count, alpha)
         
-        # Seeding phase duration (0.1 * D or 0.1 months)
-        # D is in months. 1 month ~ 30 days.
+        # Seeding phase duration (0.1 * D or 0.1 months minimum)
         seeding_duration_months = max(0.1 * duration_months, 0.1)
         active_duration_months = duration_months - seeding_duration_months
         
-        # If phase_count > 1, intervals are active_duration / (phase_count - 1)
-        # to ensure the last milestone is at the end of the project.
+        # Intervals for subsequent milestones
         if phase_count > 1:
             phase_interval_months = active_duration_months / (phase_count - 1)
         else:
@@ -80,24 +77,23 @@ class CampaignService:
         for i, weight in enumerate(weights):
             phase_idx = i + 1
             
-            # Milestone 1 is at the end of the seeding phase
-            if i == 0:
-                deadline = start_time + timedelta(days=seeding_duration_months * 30)
-            else:
-                # Subsequent milestones are spaced by phase_interval_months
-                deadline = start_time + timedelta(days=(seeding_duration_months + i * phase_interval_months) * 30)
-            
-            # Disbursement Di = Wi (Remedial Reserve removed)
+            # Disbursement Di = Wi
             disbursement_pct = weight
-            release_amt = float(funding_goal) * disbursement_pct
+            release_amt = float(funding_goal) * float(disbursement_pct)
+            
+            # Calculate target deadline based on seeding phase + intervals
+            if i == 0:
+                target_deadline = start_time + timedelta(days=seeding_duration_months * 30)
+            else:
+                target_deadline = start_time + timedelta(days=(seeding_duration_months + i * phase_interval_months) * 30)
             
             milestone = Milestone(
                 campaign_id=campaign.campaign_id,
-                phase_index=phase_idx,
+                milestone_number=phase_idx,
                 phase_weight_wi=weight,
                 disbursement_percentage_di=disbursement_pct,
                 release_amount=release_amt,
-                deadline=deadline,
+                target_deadline=target_deadline,
                 status='pending'
             )
             db.add(milestone)

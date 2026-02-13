@@ -20,6 +20,7 @@ class MilestoneBase(BaseModel):
     approved_at: Optional[datetime] = None
     rejected_at: Optional[datetime] = None
     funds_released_at: Optional[datetime] = None
+    target_deadline: Optional[datetime] = None
     revision_count: int = 0
     max_revisions: int = 1
 
@@ -79,3 +80,14 @@ class CampaignOut(BaseModel):
     class Config:
         from_attributes = True
         populate_by_name = True
+
+class CampaignProgress(BaseModel):
+    status: str
+    funding_percentage: float
+    total_contributions: Decimal
+    funding_goal: Decimal
+    milestones_total: int
+    milestones_completed: int
+    current_milestone_number: Optional[int] = None
+    next_action_required: str
+    days_remaining: Optional[int] = None

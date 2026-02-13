@@ -25,6 +25,7 @@ class Milestone(Base):
     approved_at = Column(DateTime, nullable=True)
     rejected_at = Column(DateTime, nullable=True)
     funds_released_at = Column(DateTime, nullable=True)
+    target_deadline = Column(DateTime, nullable=True)
     
     # Revision Control
     revision_count = Column(Integer, default=0)

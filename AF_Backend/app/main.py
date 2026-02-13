@@ -64,11 +64,12 @@ async def health_check():
 
 
 # API Routes
-from app.api.endpoints import auth, campaigns, votes, contributions
+from app.api.endpoints import auth, campaigns, votes, contributions, milestones
 from app.api.v1.endpoints import payments
 
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"])
 app.include_router(campaigns.router, prefix=f"{settings.API_V1_STR}/campaigns", tags=["Campaigns"])
+app.include_router(milestones.router, prefix=f"{settings.API_V1_STR}/milestones", tags=["Milestones"])
 app.include_router(votes.router, prefix=f"{settings.API_V1_STR}/votes", tags=["Votes"])
 app.include_router(contributions.router, prefix=f"{settings.API_V1_STR}/contributions", tags=["Contributions"])
 app.include_router(payments.router, prefix=f"{settings.API_V1_STR}/payments", tags=["Payments"])
