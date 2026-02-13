@@ -11,6 +11,10 @@ class ApiConfig {
   // Campaign Endpoints
   static const String campaigns = '$baseUrl/campaigns';
   static const String myCampaigns = '$baseUrl/campaigns/my-campaigns';
+  static String launchCampaign(String id) => '$campaigns/$id/launch';
+  static String campaignProgress(String id) => '$campaigns/$id/progress';
+  static String campaignTimeline(String id) => '$campaigns/$id/timeline';
+  static String cancelCampaign(String id) => '$campaigns/$id/cancel';
 
   // Contribution & Escrow
   static const String contributions = '$baseUrl/contributions';
