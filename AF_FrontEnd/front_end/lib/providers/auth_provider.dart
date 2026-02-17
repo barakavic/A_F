@@ -72,7 +72,6 @@ class AuthProvider extends ChangeNotifier {
         profileData: profileData,
       );
       
-      // We don't auto-login after register because we might have  a verification step (Redis/Email) pending.
       _setLoading(false);
       return true;
     } catch (e) {

@@ -63,8 +63,11 @@ class CampaignWizardState {
   }
 }
 
-class CampaignWizardNotifier extends StateNotifier<CampaignWizardState> {
-  CampaignWizardNotifier() : super(CampaignWizardState());
+class CampaignWizardNotifier extends Notifier<CampaignWizardState> {
+  @override
+  CampaignWizardState build() {
+    return CampaignWizardState();
+  }
 
   void updateBasicInfo(String title, String description) {
     state = state.copyWith(title: title, description: description);
@@ -97,6 +100,6 @@ class CampaignWizardNotifier extends StateNotifier<CampaignWizardState> {
   }
 }
 
-final campaignWizardProvider = StateNotifierProvider<CampaignWizardNotifier, CampaignWizardState>((ref) {
+final campaignWizardProvider = NotifierProvider<CampaignWizardNotifier, CampaignWizardState>(() {
   return CampaignWizardNotifier();
 });

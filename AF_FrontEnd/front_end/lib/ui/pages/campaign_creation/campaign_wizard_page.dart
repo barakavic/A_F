@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../providers/campaign_wizard_provider.dart';
 import '../../../providers/project_provider.dart';
-import '../../../providers/auth_provider.dart';
 
 class CampaignWizardPage extends ConsumerStatefulWidget {
   const CampaignWizardPage({super.key});
@@ -85,10 +84,9 @@ class _CampaignWizardPageState extends ConsumerState<CampaignWizardPage> {
 
   void _submit() async {
     final state = ref.read(campaignWizardProvider);
-    final user = ref.read(authProvider).user; // Assuming user info is available
     
-    // In a real app, we'd get the actual user ID. For now, using a placeholder if not available.
-    final fundraiserId = user?.uid ?? "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"; 
+    // Using the dev account UUID directly to avoid session retrieval hassle for the panel demo
+    const fundraiserId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"; 
 
     final project = state.toProject(fundraiserId);
 
