@@ -4,6 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../../data/models/project.dart';
 import '../../providers/project_provider.dart';
 import 'project_management_detail.dart';
+import '../../ui/pages/campaign_creation/campaign_wizard_page.dart';
 import 'widgets/create_campaign_form.dart';
 
 class ActiveProjectsPage extends ConsumerStatefulWidget {
@@ -19,33 +20,9 @@ class ActiveProjectsPageState extends ConsumerState<ActiveProjectsPage> {
   }
 
   void showCreateCampaignSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: CreateCampaignForm(
-          onSubmit: (project) async {
-            final success = await ref.read(projectServiceProvider).createProject(project);
-            if (success && mounted) {
-              Navigator.pop(context); // Close sheet
-              _refreshProjects(); // Reload list
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Campaign created successfully!')),
-              );
-            } else if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Failed to create campaign'), backgroundColor: Colors.red),
-              );
-            }
-          },
-        ),
-      ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CampaignWizardPage()),
     );
   }
 
