@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:front_end/screens/auth/login_screen.dart';
 import 'package:front_end/data/services/auth_service.dart';
-import '../fundraiser/fundraiser_dashboard.dart';
+import '../../ui/pages/fundraiser/fundraiser_dashboard_page.dart';
 import '../contributor/contributor_dashboard.dart';
 
 class LoginOptionsPage extends StatelessWidget {
@@ -84,7 +84,7 @@ class LoginOptionsPage extends StatelessWidget {
                       if (role == 'fundraiser') {
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (context) => const FundraiserDashboard()),
+                          MaterialPageRoute(builder: (context) => const FundraiserDashboardPage()),
                         );
                       } else {
                         Navigator.pushReplacement(
