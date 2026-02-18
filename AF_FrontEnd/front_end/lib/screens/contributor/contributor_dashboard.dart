@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import 'discover_projects_page.dart';
 import 'contributor_wallet_page.dart';
+import '../../ui/pages/contributor/pending_votes_page.dart';
 
 class ContributorDashboard extends StatefulWidget {
   const ContributorDashboard({super.key});
@@ -53,6 +54,8 @@ class _ContributorDashboardState extends State<ContributorDashboard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildPortfolioCard(),
+          const SizedBox(height: 24),
+          _buildActionCard(context),
           const SizedBox(height: 32),
           const Text(
             'Active Investments',
@@ -123,6 +126,45 @@ class _ContributorDashboardState extends State<ContributorDashboard> {
           shape: BoxShape.circle,
         ),
         child: Icon(icon, color: isSelected ? AppColors.primary : Colors.grey, size: 28),
+      ),
+    );
+  }
+
+  Widget _buildActionCard(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const PendingVotesPage()));
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.orange.shade50.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.orange.shade100),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: const BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
+              child: const Icon(Icons.how_to_vote, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Action Required", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.orange)),
+                  Text(
+                    "You have pending milestones to review and vote on.",
+                    style: TextStyle(color: Colors.orange.shade900, fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.orange),
+          ],
+        ),
       ),
     );
   }
