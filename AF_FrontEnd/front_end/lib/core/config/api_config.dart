@@ -1,7 +1,7 @@
 class ApiConfig {
   ApiConfig._();
 
-  static const String baseUrl = 'http://10.0.2.2:8000/api/v1';
+  static const String baseUrl = 'https://adbe-102-213-241-213.ngrok-free.app/api/v1';
 
   // Auth Endpoints
   static const String login = '$baseUrl/auth/login';
@@ -9,21 +9,22 @@ class ApiConfig {
   static const String registerFundraiser = '$baseUrl/auth/register/fundraiser';
 
   // Campaign Endpoints
-  static const String campaigns = '$baseUrl/campaigns';
-  static const String myCampaigns = '$baseUrl/campaigns/my-campaigns';
-  static String launchCampaign(String id) => '$campaigns/$id/launch';
-  static String campaignProgress(String id) => '$campaigns/$id/progress';
-  static String campaignTimeline(String id) => '$campaigns/$id/timeline';
-  static String cancelCampaign(String id) => '$campaigns/$id/cancel';
+  static const String campaigns = '$baseUrl/campaigns/'; // Trailing slash for POST /
+  static const String myCampaigns = '$baseUrl/campaigns/my-campaigns/';
+  static String launchCampaign(String id) => '$baseUrl/campaigns/$id/launch';
+  static String campaignProgress(String id) => '$baseUrl/campaigns/$id/progress';
+  static String campaignTimeline(String id) => '$baseUrl/campaigns/$id/timeline';
+  static String cancelCampaign(String id) => '$baseUrl/campaigns/$id/cancel';
 
   // Contribution & Escrow
-  static const String contributions = '$baseUrl/contributions';
-  static const String escrowStatus = '$baseUrl/escrow';
+  static const String contributions = '$baseUrl/contributions/';
+  static const String escrowStatus = '$baseUrl/escrow/';
 
   // Voting
   static const String submitVote = '$baseUrl/votes/submit';
   static const String voteResults = '$baseUrl/votes/results';
   static const String waiveVote = '$baseUrl/votes/waive';
+  static const String pendingVotes = '$baseUrl/votes/pending';
 
   // Payments
   static const String stkPush = '$baseUrl/payments/stk-push';

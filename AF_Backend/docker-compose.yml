@@ -84,6 +84,21 @@ services:
     depends_on:
       - postgres
 
+  # Ngrok Tunneling
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ascent_fin_ngrok
+    restart: unless-stopped
+    command:
+      - "http"
+      - "api:8000"
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    depends_on:
+      - api
+    networks:
+      - ascent_network
+
 volumes:
   postgres_data:
     driver: local
