@@ -87,7 +87,7 @@ def launch_campaign(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/{campaign_id}/timeline", response_model=List[Any])
+@router.get("/{campaign_id}/timeline", response_model=List[MilestoneOut])
 def get_campaign_timeline(
     campaign_id: UUID,
     db: Session = Depends(get_db)

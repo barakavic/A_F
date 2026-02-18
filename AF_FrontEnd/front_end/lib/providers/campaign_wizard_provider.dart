@@ -18,7 +18,7 @@ class CampaignWizardState {
     this.description = '',
     this.goalAmount = 0.0,
     this.durationMonths = 1,
-    this.category = 'General',
+    this.category = 'Water & Sanitation',
     this.riskFactor,
     this.phaseCount,
     this.milestones,

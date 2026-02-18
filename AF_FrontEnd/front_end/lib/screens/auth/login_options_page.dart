@@ -113,6 +113,49 @@ class LoginOptionsPage extends StatelessWidget {
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  final authService = AuthService();
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => const Center(child: CircularProgressIndicator()),
+                  );
+
+                  try {
+                    // Using the dev contributor account for bypass
+                    await authService.login('victor@test.com', 'password123');
+                    
+                    if (context.mounted) {
+                      Navigator.pop(context); // Remove loading
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ContributorDashboard()),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      Navigator.pop(context); // Remove loading
+                      // Even if login fails, jump for demo stability
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ContributorDashboard()),
+                      );
+                    }
+                  }
+                },
+                label: const Text("Bypass as Contributor"),
+                icon: const Icon(Icons.person_outline),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueGrey,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 20),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
               const SizedBox(height: 20),
               Spacer(),
               Row(
