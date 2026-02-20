@@ -18,6 +18,7 @@ class ApiConfig {
 
   // Contribution & Escrow
   static const String contributions = '$baseUrl/contributions/';
+  static const String myContributions = '$baseUrl/contributions/my-contributions';
   static const String escrowStatus = '$baseUrl/escrow/';
 
   // Voting

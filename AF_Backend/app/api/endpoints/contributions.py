@@ -1,9 +1,11 @@
-from typing import Any
+from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.api.dependencies.deps import get_db, get_current_user
 from app.models.user import User
-from app.schemas.contribution import ContributionCreate, ContributionResponse
+from app.schemas.contribution import ContributionCreate, ContributionResponse, UserContributionOut
+from app.models.transaction import Contribution
+from app.models.campaign import Campaign
 from app.services.contribution_service import ContributionService
 
 router = APIRouter()
@@ -36,3 +38,29 @@ def create_contribution(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+@router.get("/my-contributions", response_model=List[UserContributionOut])
+def get_my_contributions(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Get all contributions made by the current user.
+    """
+    contributions = db.query(Contribution).join(Campaign).filter(
+        Contribution.contributor_id == current_user.account_id
+    ).all()
+    
+    result = []
+    for c in contributions:
+        result.append({
+            "contribution_id": c.contribution_id,
+            "campaign_id": c.campaign_id,
+            "campaign_title": c.campaign.title,
+            "campaign_status": c.campaign.status,
+            "amount": c.amount,
+            "status": c.status,
+            "created_at": c.created_at
+        })
+    
+    return result

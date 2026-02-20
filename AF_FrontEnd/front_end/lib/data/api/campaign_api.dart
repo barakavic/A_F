@@ -1,9 +1,20 @@
 import '../models/project.dart';
+import '../models/campaign_details.dart';
 import 'api_client.dart';
 import '../../core/config/api_config.dart';
 
 class CampaignApi {
   final ApiClient _apiClient = ApiClient();
+
+  /// Get full details for a campaign (including milestones)
+  Future<CampaignDetails> getCampaignDetails(String id) async {
+    try {
+      final response = await _apiClient.get('${ApiConfig.campaigns}/$id');
+      return CampaignDetails.fromJson(response.data);
+    } catch (e) {
+      rethrow;
+    }
+  }
 
   /// Create a new campaign (Draft)
   Future<Project> createCampaign(Project project) async {

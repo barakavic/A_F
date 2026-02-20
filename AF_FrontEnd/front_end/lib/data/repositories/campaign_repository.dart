@@ -3,10 +3,15 @@ import '../api/campaign_api.dart';
 import '../api/milestone_api.dart';
 import '../models/project.dart';
 import '../models/milestone.dart';
+import '../models/campaign_details.dart';
 
 class CampaignRepository {
   final CampaignApi _campaignApi = CampaignApi();
   final MilestoneApi _milestoneApi = MilestoneApi();
+
+  Future<CampaignDetails> getCampaignDetails(String id) async {
+    return await _campaignApi.getCampaignDetails(id);
+  }
 
   
   Future<List<Project>> getDiscoveryCampaigns() async {

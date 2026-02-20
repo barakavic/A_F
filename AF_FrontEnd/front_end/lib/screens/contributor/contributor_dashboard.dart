@@ -3,6 +3,7 @@ import '../../core/constants/app_colors.dart';
 import 'discover_projects_page.dart';
 import 'contributor_wallet_page.dart';
 import '../../ui/pages/contributor/pending_votes_page.dart';
+import '../../ui/pages/contributor/portfolio_page.dart';
 
 class ContributorDashboard extends StatefulWidget {
   const ContributorDashboard({super.key});
@@ -70,32 +71,37 @@ class _ContributorDashboardState extends State<ContributorDashboard> {
   }
 
   Widget _buildPortfolioCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10)),
-        ],
-      ),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Total Portfolio Value', style: TextStyle(color: Colors.white70, fontSize: 14)),
-          SizedBox(height: 8),
-          Text('KES 245,000.00', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
-          SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _StatItem(label: 'Investments', value: '12'),
-              _StatItem(label: 'Avg ROI', value: '8.4%'),
-              _StatItem(label: 'Impact', value: 'High'),
-            ],
-          ),
-        ],
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const PortfolioPage()));
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10)),
+          ],
+        ),
+        child: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Total Portfolio Value', style: TextStyle(color: Colors.white70, fontSize: 14)),
+            SizedBox(height: 8),
+            Text('KES 245,000.00', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+            SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _StatItem(label: 'Investments', value: '12'),
+                _StatItem(label: 'Avg ROI', value: '8.4%'),
+                _StatItem(label: 'Impact', value: 'High'),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

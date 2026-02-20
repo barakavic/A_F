@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
+import '../../providers/project_provider.dart';
+import '../../data/models/project.dart';
 import 'project_discovery_detail.dart';
 
-class DiscoverProjectsPage extends StatelessWidget {
+class DiscoverProjectsPage extends ConsumerWidget {
   const DiscoverProjectsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final projectsAsync = ref.watch(activeProjectsProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -21,36 +26,37 @@ class DiscoverProjectsPage extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            children: [
-              _buildDiscoveryCard(
-                context,
-                'Solar Classrooms', 'EcoLearn Africa', 'KES 1M', '12 Days', 0.75, 'Technology',
-                'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTCw3C5G0dkQgnt7XH-bjglpq7lBhzQ0uOZ4w&s',
+          child: projectsAsync.when(
+            data: (projects) => RefreshIndicator(
+              onRefresh: () => ref.refresh(activeProjectsProvider.future),
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                itemCount: projects.length,
+                itemBuilder: (context, index) {
+                  final project = projects[index];
+                  return _buildDiscoveryCard(
+                    context,
+                    project,
+                  );
+                },
               ),
-              _buildDiscoveryCard(
-                context,
-                'Vertical Farming', 'GreenGrowth Labs', 'KES 5M', '4 Days', 0.45, 'AgriTech',
-                'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFd_dd5_OV72E2FVWIzny8iM9YbjYKDVtoIw&s',
-              ),
-              _buildDiscoveryCard(
-                context,
-                'Water Purification', 'KenyaClean Water', 'KES 500k', '20 Days', 0.30, 'Health',
-                'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRK-YX1_ZLSeAvPyF5EngnpHqxqhDzveANIw&s',
-              ),
-            ],
+            ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Center(child: Text("Error: $err")),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildDiscoveryCard(BuildContext context, String name, String fundraiser, String goal, String deadline, double progress, String cat, String img) {
+  Widget _buildDiscoveryCard(BuildContext context, Project project) {
+    // Default image if none provided
+    const String img = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTCw3C5G0dkQgnt7XH-bjglpq7lBhzQ0uOZ4w&s';
+    final double progress = project.raisedAmount / (project.goalAmount > 0 ? project.goalAmount : 1.0);
     return GestureDetector(
       onTap: () => Navigator.push(
         context, 
-        MaterialPageRoute(builder: (context) => ProjectDiscoveryDetail(projectName: name, fundraiserName: fundraiser))
+        MaterialPageRoute(builder: (context) => ProjectDiscoveryDetail(project: project))
       ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 24),
@@ -70,16 +76,21 @@ class DiscoverProjectsPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text("by $fundraiser", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                  Text(project.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text("by ${project.fundraiserId ?? 'Verified Fundraiser'}", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
                   const SizedBox(height: 16),
-                  LinearProgressIndicator(value: progress, backgroundColor: Colors.grey.shade100, color: AppColors.primary, minHeight: 6),
+                  LinearProgressIndicator(
+                    value: progress > 1.0 ? 1.0 : progress, 
+                    backgroundColor: Colors.grey.shade100, 
+                    color: AppColors.primary, 
+                    minHeight: 6
+                  ),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("$cat • $deadline", style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue)),
-                      Text(goal, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                      Text("${project.durationMonths} Months • ${project.status.toUpperCase()}", style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue)),
+                      Text("Goal: KES ${project.goalAmount.toInt()}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
                     ],
                   ),
                 ],

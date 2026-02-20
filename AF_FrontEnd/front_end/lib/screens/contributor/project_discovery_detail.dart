@@ -1,18 +1,84 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 
-class ProjectDiscoveryDetail extends StatelessWidget {
-  final String projectName;
-  final String fundraiserName;
+import '../../data/models/project.dart';
+import '../../data/repositories/contribution_repository.dart';
+
+class ProjectDiscoveryDetail extends StatefulWidget {
+  final Project project;
 
   const ProjectDiscoveryDetail({
     super.key,
-    required this.projectName,
-    required this.fundraiserName,
+    required this.project,
   });
 
   @override
+  State<ProjectDiscoveryDetail> createState() => _ProjectDiscoveryDetailState();
+}
+
+class _ProjectDiscoveryDetailState extends State<ProjectDiscoveryDetail> {
+  final TextEditingController _amountController = TextEditingController();
+  final ContributionRepository _contributionRepository = ContributionRepository();
+  bool _isSubmitting = false;
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleFunding() async {
+    final amountText = _amountController.text;
+    if (amountText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please enter an amount")));
+      return;
+    }
+
+    final amount = double.tryParse(amountText);
+    if (amount == null || amount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Invalid amount")));
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      await _contributionRepository.contribute(
+        campaignId: widget.project.id!,
+        amount: amount,
+      );
+
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Success! 🎉"),
+            content: Text("You have successfully funded ${widget.project.title}. A voting token has been issued to your account."),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // Close dialog
+                  Navigator.pop(context); // Go back to discovery
+                }, 
+                child: const Text("Great!"),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Funding failed: $e")));
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Note: widget.project is used now
+    final project = widget.project;
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -65,7 +131,7 @@ class ProjectDiscoveryDetail extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              projectName,
+                              project.title,
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 24,
@@ -73,7 +139,7 @@ class ProjectDiscoveryDetail extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              "by $fundraiserName",
+                              "by ${project.fundraiserId ?? 'Verified Fundraiser'}",
                               style: const TextStyle(color: Colors.white70, fontSize: 14),
                             ),
                           ],
@@ -104,27 +170,28 @@ class ProjectDiscoveryDetail extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Row(
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text("Progress", style: TextStyle(fontWeight: FontWeight.bold)),
-                              Text("75%", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                              const Text("Progress", style: TextStyle(fontWeight: FontWeight.bold)),
+                              Text("${((project.raisedAmount / (project.goalAmount > 0 ? project.goalAmount : 1.0)) * 100).toInt()}%", 
+                                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
                             ],
                           ),
                           const SizedBox(height: 8),
                           ClipRRect(
                             borderRadius: BorderRadius.circular(10),
-                            child: const LinearProgressIndicator(
-                              value: 0.75,
+                            child: LinearProgressIndicator(
+                              value: (project.raisedAmount / (project.goalAmount > 0 ? project.goalAmount : 1.0)),
                               minHeight: 12,
-                              backgroundColor: Color(0xFFEEEEEE),
-                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                              backgroundColor: const Color(0xFFEEEEEE),
+                              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
                             ),
                           ),
                           const SizedBox(height: 8),
-                          const Text(
-                            "KES 750,000 raised of KES 1,000,000 goal",
-                            style: TextStyle(color: Colors.grey, fontSize: 13),
+                          Text(
+                            "KES ${project.raisedAmount.toInt()} raised of KES ${project.goalAmount.toInt()} goal",
+                            style: const TextStyle(color: Colors.grey, fontSize: 13),
                           ),
                         ],
                       ),
@@ -138,7 +205,7 @@ class ProjectDiscoveryDetail extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        "This project aims to revolutionize rural education by providing portable solar-powered classrooms. Each unit includes digital learning tablets, high-speed satellite internet, and a climate-controlled environment, all powered by integrated rooftop solar panels.\n\nOur mission is to bridge the digital divide and ensure that every child, regardless of location, has access to world-class educational resources.",
+                        project.description,
                         style: TextStyle(color: Colors.grey.shade700, height: 1.6, fontSize: 15),
                       ),
                       
@@ -163,7 +230,7 @@ class ProjectDiscoveryDetail extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(fundraiserName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  Text(project.fundraiserId ?? 'Verified Fundraiser', style: const TextStyle(fontWeight: FontWeight.bold)),
                                   const Text("Verified Organization", style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.w600)),
                                 ],
                               ),
@@ -209,9 +276,10 @@ class ProjectDiscoveryDetail extends StatelessWidget {
                           color: Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: const Center(
+                        child: Center(
                           child: TextField(
-                            decoration: InputDecoration(
+                            controller: _amountController,
+                            decoration: const InputDecoration(
                               hintText: "Enter Amount",
                               border: InputBorder.none,
                               prefixText: "KES ",
@@ -232,8 +300,10 @@ class ProjectDiscoveryDetail extends StatelessWidget {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                           elevation: 0,
                         ),
-                        onPressed: () {},
-                        child: const Text("Fund Project", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        onPressed: _isSubmitting ? null : _handleFunding,
+                        child: _isSubmitting 
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : const Text("Fund Project", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       ),
                     ),
                   ],

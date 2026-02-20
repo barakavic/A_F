@@ -27,3 +27,15 @@ class ContributionResponse(BaseModel):
     campaign_total_raised: Decimal
     escrow_balance: Decimal
     vote_token_id: Optional[UUID] = None
+
+class UserContributionOut(BaseModel):
+    contribution_id: UUID
+    campaign_id: UUID
+    campaign_title: str
+    campaign_status: str
+    amount: Decimal
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
