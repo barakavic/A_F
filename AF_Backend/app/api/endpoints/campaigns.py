@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 
 from app.api.dependencies.deps import get_db, get_current_user
-from app.schemas.campaign import CampaignCreate, CampaignOut, CampaignUpdate
+from app.schemas.campaign import CampaignCreate, CampaignOut, CampaignUpdate, MilestoneOut
 from app.models.user import User
 from app.models.campaign import Campaign
 from app.services.campaign_service import CampaignService
@@ -39,6 +39,17 @@ def create_campaign(
         return campaign
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/my-campaigns", response_model=List[CampaignOut])
+def read_my_campaigns(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Retrieve campaigns created by the current user.
+    """
+    campaigns = db.query(Campaign).filter(Campaign.fundraiser_id == current_user.account_id).all()
+    return campaigns
 
 @router.get("/", response_model=List[CampaignOut])
 def read_campaigns(

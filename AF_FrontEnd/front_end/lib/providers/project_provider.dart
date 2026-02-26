@@ -8,3 +8,8 @@ final activeProjectsProvider = FutureProvider.autoDispose<List<Project>>((ref) a
   final service = ref.watch(projectServiceProvider);
   return await service.getActiveProjects();
 });
+
+final myProjectsProvider = FutureProvider.autoDispose<List<Project>>((ref) async {
+  final service = ref.watch(projectServiceProvider);
+  return await service.getMyProjects();
+});

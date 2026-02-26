@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/project.dart';
+import 'package:provider/provider.dart' as legacy_provider;
 import '../../../providers/project_provider.dart';
+import '../../../providers/auth_provider.dart';
 import '../campaign_creation/campaign_wizard_page.dart';
 import 'campaign_timeline_page.dart';
 
@@ -27,14 +29,14 @@ class FundraiserDashboardPage extends ConsumerWidget {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(activeProjectsProvider),
+        onRefresh: () async => ref.invalidate(myProjectsProvider),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildWelcomeHeader(),
+              _buildWelcomeHeader(context),
               const SizedBox(height: 32),
               _buildStatsGrid(),
               const SizedBox(height: 40),
@@ -62,12 +64,15 @@ class FundraiserDashboardPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildWelcomeHeader() {
+  Widget _buildWelcomeHeader(BuildContext context) {
+    final authProvider = legacy_provider.Provider.of<AuthProvider>(context);
+    final String displayName = authProvider.userDisplayName ?? "Fundraiser";
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text("Welcome back,", style: TextStyle(fontSize: 16, color: Colors.grey)),
-        const Text("Ascent Solar Ltd", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+        Text(displayName, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -121,7 +126,7 @@ class FundraiserDashboardPage extends ConsumerWidget {
   }
 
   Widget _buildCampaignList(WidgetRef ref) {
-    final projectsAsync = ref.watch(activeProjectsProvider);
+    final projectsAsync = ref.watch(myProjectsProvider);
 
     return projectsAsync.when(
       data: (projects) {

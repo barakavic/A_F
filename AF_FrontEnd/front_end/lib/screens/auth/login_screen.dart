@@ -5,7 +5,7 @@ import '../../core/constants/app_text_styles.dart';
 import '../../core/utils/validators.dart';
 import '../../providers/auth_provider.dart';
 import 'signup_screen.dart';
-import '../fundraiser/fundraiser_dashboard.dart';
+import '../../ui/pages/fundraiser/fundraiser_dashboard_page.dart';
 import '../contributor/contributor_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -41,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (role == 'fundraiser') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const FundraiserDashboard()),
+            MaterialPageRoute(builder: (context) => const FundraiserDashboardPage()),
           );
         } else {
           Navigator.pushReplacement(
