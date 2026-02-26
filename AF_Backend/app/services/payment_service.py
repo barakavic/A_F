@@ -1,13 +1,35 @@
 from sqlalchemy.orm import Session
+import requests
+import base64
+from datetime import datetime
+import uuid
+from typing import Dict, Any, Optional
+
 from app.models.campaign import Campaign
 from app.models.user import User
 from app.services.contribution_service import ContributionService
 from app.core.redis import save_stk_session, get_stk_session, delete_stk_session
 from app.core.config import settings
-import uuid
-from typing import Dict, Any
 
 class PaymentService:
+    @staticmethod
+    def _get_mpesa_access_token() -> Optional[str]:
+        """Get OAuth2 access token from Safaricom."""
+        url = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
+        if settings.MPESA_ENVIRONMENT == "production":
+            url = "https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
+            
+        try:
+            response = requests.get(
+                url, 
+                auth=(settings.MPESA_CONSUMER_KEY, settings.MPESA_CONSUMER_SECRET)
+            )
+            response.raise_for_status()
+            return response.json().get("access_token")
+        except Exception as e:
+            print(f"Failed to get M-Pesa token: {e}")
+            return None
+
     @staticmethod
     def initiate_stk_push(
         db: Session,
@@ -17,52 +39,71 @@ class PaymentService:
         phone_number: str
     ) -> Dict[str, Any]:
         """
-        Initiate an STK Push request (Simulator Mode).
-        
-        In production, this will call Safaricom's Daraja API.
-        For now, it generates a fake CheckoutRequestID and stores the session in Redis.
-        
-        Args:
-            db: Database session
-            campaign_id: UUID of the campaign
-            contributor_id: UUID of the contributor
-            amount: Amount to contribute
-            phone_number: M-Pesa phone number (format: 254XXXXXXXXX)
-        
-        Returns:
-            Dictionary with status and checkout_request_id
+        Initiate a real M-Pesa STK Push via Daraja API.
         """
-        # Validate campaign exists and is active
+        # 1. Validation
         campaign = db.query(Campaign).filter(Campaign.campaign_id == campaign_id).first()
-        if not campaign:
-            raise ValueError("Campaign not found")
-        if campaign.status != 'active':
-            raise ValueError(f"Campaign is not active. Current status: {campaign.status}")
+        if not campaign or campaign.status != 'active':
+            raise ValueError("Campaign not found or not active")
         
-        # Validate contributor exists
-        contributor = db.query(User).filter(User.account_id == contributor_id).first()
-        if not contributor:
-            raise ValueError("Contributor not found")
+        # 2. Get Access Token
+        access_token = PaymentService._get_mpesa_access_token()
+        if not access_token:
+            raise Exception("Could not authenticate with Safaricom Daraja API")
+
+        # 3. Prepare STK Push Request
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+        password_str = f"{settings.MPESA_SHORTCODE}{settings.MPESA_PASSKEY}{timestamp}"
+        password = base64.b64encode(password_str.encode()).decode()
         
-        # Generate a fake CheckoutRequestID (in production, this comes from Safaricom)
-        checkout_request_id = f"ws_CO_{uuid.uuid4().hex[:12]}"
-        
-        # Prepare session data
-        session_data = {
-            "campaign_id": str(campaign_id),
-            "contributor_id": str(contributor_id),
-            "amount": float(amount),
-            "phone_number": phone_number
+        url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
+        if settings.MPESA_ENVIRONMENT == "production":
+            url = "https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
+
+        payload = {
+            "BusinessShortCode": settings.MPESA_SHORTCODE,
+            "Password": password,
+            "Timestamp": timestamp,
+            "TransactionType": "CustomerPayBillOnline",
+            "Amount": int(amount),
+            "PartyA": phone_number,
+            "PartyB": settings.MPESA_SHORTCODE,
+            "PhoneNumber": phone_number,
+            "CallBackURL": settings.MPESA_CALLBACK_URL,
+            "AccountReference": f"CAF-{campaign.campaign_id.hex[:6]}",
+            "TransactionDesc": f"Contribution to {campaign.title[:20]}"
         }
+
+        headers = {"Authorization": f"Bearer {access_token}"}
         
-        # Save to Redis with 10-minute TTL
-        save_stk_session(checkout_request_id, session_data)
-        
-        return {
-            "status": "pending",
-            "checkout_request_id": checkout_request_id,
-            "message": "STK Push sent. Please enter your PIN."
-        }
+        try:
+            response = requests.post(url, json=payload, headers=headers)
+            response_data = response.json()
+            
+            if response.status_code == 200 and response_data.get("ResponseCode") == "0":
+                checkout_request_id = response_data.get("CheckoutRequestID")
+                
+                # Save session to Redis for callback processing
+                session_data = {
+                    "campaign_id": str(campaign_id),
+                    "contributor_id": str(contributor_id),
+                    "amount": float(amount),
+                    "phone_number": phone_number
+                }
+                save_stk_session(checkout_request_id, session_data)
+                
+                return {
+                    "status": "pending",
+                    "checkout_request_id": checkout_request_id,
+                    "message": "STK Push sent. Please check your phone for the M-Pesa prompt."
+                }
+            else:
+                error_msg = response_data.get("errorMessage", "Unknown Daraja error")
+                raise Exception(f"Safaricom rejected request: {error_msg}")
+                
+        except Exception as e:
+            print(f"STK Push Error: {e}")
+            raise e
     
     @staticmethod
     def process_stk_callback(

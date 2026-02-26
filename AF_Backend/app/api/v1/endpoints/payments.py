@@ -14,7 +14,7 @@ router = APIRouter()
 class STKPushRequest(BaseModel):
     campaign_id: str = Field(..., description="UUID of the campaign")
     amount: float = Field(..., gt=0, description="Amount to contribute (must be positive)")
-    phone_number: str = Field(..., pattern=r"^254\d{9}$", description="M-Pesa phone number (format: 254XXXXXXXXX)")
+    phone_number: Optional[str] = Field(None, pattern=r"^254\d{9}$", description="M-Pesa phone number (format: 254XXXXXXXXX)")
 
 class STKPushResponse(BaseModel):
     status: str
@@ -44,12 +44,18 @@ def initiate_stk_push(
         campaign_id = uuid.UUID(request.campaign_id)
         contributor_id = current_user.account_id
         
+        phone_number = request.phone_number
+        if not phone_number:
+            if not current_user.contributor_profile or not current_user.contributor_profile.phone_number:
+                raise ValueError("Phone number not found. Please provide one or update your profile.")
+            phone_number = current_user.contributor_profile.phone_number
+
         result = PaymentService.initiate_stk_push(
             db=db,
             campaign_id=campaign_id,
             contributor_id=contributor_id,
             amount=request.amount,
-            phone_number=request.phone_number
+            phone_number=phone_number
         )
         
         return STKPushResponse(**result)

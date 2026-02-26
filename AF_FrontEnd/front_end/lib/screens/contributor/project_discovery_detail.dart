@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
-
 import '../../data/models/project.dart';
 import '../../data/repositories/contribution_repository.dart';
+import '../../data/repositories/payment_repository.dart';
 
 class ProjectDiscoveryDetail extends StatefulWidget {
   final Project project;
@@ -18,7 +18,8 @@ class ProjectDiscoveryDetail extends StatefulWidget {
 
 class _ProjectDiscoveryDetailState extends State<ProjectDiscoveryDetail> {
   final TextEditingController _amountController = TextEditingController();
-  final ContributionRepository _contributionRepository = ContributionRepository();
+  final TextEditingController _phoneController = TextEditingController(text: "254");
+  final PaymentRepository _paymentRepository = PaymentRepository();
   bool _isSubmitting = false;
 
   @override
@@ -29,9 +30,18 @@ class _ProjectDiscoveryDetailState extends State<ProjectDiscoveryDetail> {
 
   Future<void> _handleFunding() async {
     final amountText = _amountController.text;
+    final phoneText = _phoneController.text;
+
     if (amountText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please enter an amount")));
       return;
+    }
+
+    if (phoneText.isNotEmpty && phoneText != "254") {
+      if (!phoneText.startsWith("254") || phoneText.length != 12) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please enter a valid M-Pesa number (254...)")));
+        return;
+      }
     }
 
     final amount = double.tryParse(amountText);
@@ -43,24 +53,25 @@ class _ProjectDiscoveryDetailState extends State<ProjectDiscoveryDetail> {
     setState(() => _isSubmitting = true);
 
     try {
-      await _contributionRepository.contribute(
+      final result = await _paymentRepository.initiateStkPush(
         campaignId: widget.project.id!,
         amount: amount,
+        phoneNumber: (phoneText == "254" || phoneText.isEmpty) ? null : phoneText,
       );
 
       if (mounted) {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text("Success! 🎉"),
-            content: Text("You have successfully funded ${widget.project.title}. A voting token has been issued to your account."),
+            title: const Text("Request Sent! ⏳"),
+            content: Text(result['message'] ?? "Please enter your M-Pesa PIN on your phone to complete the contribution."),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.pop(context); // Close dialog
-                  Navigator.pop(context); // Go back to discovery
+                  _amountController.clear();
                 }, 
-                child: const Text("Great!"),
+                child: const Text("OK"),
               ),
             ],
           ),
@@ -68,7 +79,7 @@ class _ProjectDiscoveryDetailState extends State<ProjectDiscoveryDetail> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Funding failed: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Payment failed: $e")));
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -268,25 +279,53 @@ class _ProjectDiscoveryDetailState extends State<ProjectDiscoveryDetail> {
                 child: Row(
                   children: [
                     Expanded(
-                      flex: 2,
-                      child: Container(
-                        height: 56,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Center(
-                          child: TextField(
-                            controller: _amountController,
-                            decoration: const InputDecoration(
-                              hintText: "Enter Amount",
-                              border: InputBorder.none,
-                              prefixText: "KES ",
+                      flex: 4,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            height: 48,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            keyboardType: TextInputType.number,
+                            child: Center(
+                              child: TextField(
+                                controller: _phoneController,
+                                decoration: const InputDecoration(
+                                  hintText: "Phone (254...)",
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                ),
+                                keyboardType: TextInputType.phone,
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 8),
+                          Container(
+                            height: 48,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Center(
+                              child: TextField(
+                                controller: _amountController,
+                                decoration: const InputDecoration(
+                                  hintText: "Amount",
+                                  border: InputBorder.none,
+                                  prefixText: "KES ",
+                                  isDense: true,
+                                ),
+                                keyboardType: TextInputType.number,
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(width: 16),
