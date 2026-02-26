@@ -5,11 +5,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 const supabaseUrl = 'https://fchaxglq1scawnbayqk.supabase.co';
 const supabaseKey = String.fromEnvironment('SUPABASE_KEY');
 
 Future <void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
 
   await Supabase.initialize(
     url: supabaseUrl,

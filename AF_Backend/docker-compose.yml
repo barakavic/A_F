@@ -91,6 +91,7 @@ services:
     restart: unless-stopped
     command:
       - "http"
+      - "--url=https://${NGROK_DOMAIN}"
       - "api:8000"
     environment:
       - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
