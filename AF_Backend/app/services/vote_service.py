@@ -5,6 +5,9 @@ from app.models.milestone import Milestone
 from app.models.campaign import Campaign
 from datetime import datetime
 import uuid
+from eth_account import Account
+from eth_account.messages import encode_defunct
+from app.models.user import User, ContributorProfile
 
 class VoteService:
     @staticmethod
@@ -22,20 +25,56 @@ class VoteService:
         If is_waived=True, the vote counts as YES without requiring vote_value/signature.
         TODO: Add signature verification logic here using web3 or eth_account.
         """
-        # 1. Check if voting window is open
+        # 1. Fetch Milestone & Verify Window
         milestone = db.query(Milestone).filter(Milestone.milestone_id == milestone_id).first()
         if not milestone:
             raise ValueError("Milestone not found")
             
         now = datetime.utcnow()
-        if not (milestone.vote_window_start and milestone.vote_window_end):
-             # For prototype, if windows aren't set, maybe allow? Or fail?
-             # Let's assume they must be open.
-             pass 
-        elif now < milestone.vote_window_start or now > milestone.vote_window_end:
-            raise ValueError("Voting window is closed")
+        if milestone.vote_window_start and milestone.vote_window_end:
+            if now < milestone.vote_window_start or now > milestone.vote_window_end:
+                raise ValueError("Voting window is closed")
 
-        # 2. Create Submission
+        # 2. Integrity: Check if voter has a valid VoteToken for this campaign
+        from app.models.vote import VoteToken
+        token = db.query(VoteToken).filter(
+            VoteToken.campaign_id == milestone.campaign_id,
+            VoteToken.contributor_id == contributor_id
+        ).first()
+        
+        if not token:
+            raise ValueError("Integrity Error: You need a valid VoteToken to participate in this election.")
+
+        # 3. Signature Requirement & Verification
+        if not is_waived:
+            if not signature:
+                raise ValueError("Signature Required: Manual votes must be digitally signed.")
+            
+            # Fetch public key from contributor profile
+            user = db.query(User).filter(User.account_id == contributor_id).first()
+            if not user or not user.contributor_profile:
+                raise ValueError("Contributor profile not found.")
+            
+            pub_key = user.contributor_profile.public_key
+            if not pub_key:
+                raise ValueError("No digital identity (public key) found for this contributor.")
+
+            # Create the message that was signed
+            # The message format must be consistent between frontend and backend
+            message_text = f"Vote {vote_value} for Milestone {milestone_id}"
+            message = encode_defunct(text=message_text)
+            
+            try:
+                recovered_address = Account.recover_message(message, signature=signature)
+                # Verify recovered address matches our stored public_key (checksummed for safety)
+                if recovered_address.lower() != pub_key.lower():
+                    raise ValueError(f"Integrity Error: Signature mismatch. Recovered {recovered_address} does not match registered key.")
+            except Exception as e:
+                if "Integrity Error" in str(e):
+                    raise e
+                raise ValueError(f"Signature Verification Failed: {str(e)}")
+
+        # 4. Create Submission
         # If waived, automatically set vote_value to 'yes'
         final_vote_value = 'yes' if is_waived else vote_value
         

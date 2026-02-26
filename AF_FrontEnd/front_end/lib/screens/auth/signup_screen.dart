@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import './widgets/basic_info_step.dart';
 import './widgets/otp_verification_step.dart';
+import 'package:web3dart/web3dart.dart';
+import 'dart:math';
+import 'dart:developer' as dev;
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -87,20 +90,37 @@ class _SignupScreenState extends State<SignupScreen> {
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     
-    final Map<String, dynamic> profileData = {
-      'name': _nameController.text.trim(),
-    };
+    final Map<String, dynamic> profileData = {};
 
     if (_isFundraiser) {
-      profileData['cr12_number'] = _cr12Controller.text.trim();
+      profileData['company_name'] = _nameController.text.trim();
+      profileData['br_number'] = _cr12Controller.text.trim();
     } else {
+      profileData['uname'] = _nameController.text.trim();
       profileData['phone_number'] = _phoneController.text.trim();
+    }
+
+    String? publicKey;
+    if (!_isFundraiser) {
+      // Generate a new Ethereum keypair for the contributor
+      final rng = Random.secure();
+      final EthPrivateKey credentials = EthPrivateKey.createRandom(rng);
+      publicKey = credentials.address.toString();
+      
+      // In a real production app, we would save the private key 
+      // securely in the phone's keychain (flutter_secure_storage).
+      // For this demo/testing, we log it so it can be used for manual signing if needed.
+      dev.log('--- NEW CONTRIBUTOR IDENTITY GENERATED ---');
+      dev.log('Address (Public Key): $publicKey');
+      dev.log('Private Key: ${credentials.privateKeyInt.toRadixString(16)}');
+      dev.log('-------------------------------------------');
     }
 
     final success = await authProvider.register(
       email: _emailController.text.trim(),
       password: _passwordController.text,
       role: _isFundraiser ? 'fundraiser' : 'contributor',
+      publicKey: publicKey,
       profileData: profileData,
     );
 

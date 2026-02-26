@@ -10,6 +10,7 @@ class AuthService {
   // Keys for secure storage
   static const String _tokenKey = 'jwt_token';
   static const String _userRoleKey = 'user_role';
+  static const String _userNameKey = 'user_full_name';
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
@@ -29,6 +30,23 @@ class AuthService {
         final role = response.data['role'] ?? 'fundraiser'; // Default to fundraiser if not provided
 
         await _saveAuthData(token, role);
+        
+        // Fetch full profile to get the name
+        try {
+          final profile = await getProfile();
+          String? name;
+          if (role == 'fundraiser') {
+            name = profile['fundraiser_profile']?['company_name'];
+          } else {
+            name = profile['contributor_profile']?['uname'];
+          }
+          if (name != null) {
+            await _storage.write(key: _userNameKey, value: name);
+          }
+        } catch (e) {
+          print("Profile fetch error during login: $e");
+        }
+
         return response.data;
       } else {
         throw Exception('Failed to login: ${response.statusCode}');
@@ -42,6 +60,7 @@ class AuthService {
     required String email,
     required String password,
     required String role,
+    String? publicKey,
     required Map<String, dynamic> profileData,
   }) async {
     final String endpoint = role == 'contributor' 
@@ -54,6 +73,7 @@ class AuthService {
         data: {
           'email': email,
           'password': password,
+          'public_key': publicKey,
           ...profileData,
         },
       );
@@ -75,6 +95,19 @@ class AuthService {
 
   Future<String?> getUserRole() async {
     return await _storage.read(key: _userRoleKey);
+  }
+
+  Future<String?> getUserDisplayName() async {
+    return await _storage.read(key: _userNameKey);
+  }
+
+  Future<Map<String, dynamic>> getProfile() async {
+    try {
+      final response = await _apiService.get(ApiConfig.me);
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<void> logout() async {

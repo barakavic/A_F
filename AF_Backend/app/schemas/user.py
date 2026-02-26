@@ -13,6 +13,7 @@ class ContributorRegister(UserBase):
     password: str
     uname: str
     phone_number: str
+    public_key: Optional[str] = None
 
 class FundraiserRegister(UserBase):
     password: str
@@ -31,6 +32,25 @@ class User(UserBase):
     
     class Config:
         from_attributes = True
+
+class ContributorProfileOut(BaseModel):
+    uname: str
+    phone_number: str
+    public_key: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+class FundraiserProfileOut(BaseModel):
+    company_name: str
+    br_number: str
+
+    class Config:
+        from_attributes = True
+
+class UserOut(User):
+    contributor_profile: Optional[ContributorProfileOut] = None
+    fundraiser_profile: Optional[FundraiserProfileOut] = None
 
 class Token(BaseModel):
     access_token: str

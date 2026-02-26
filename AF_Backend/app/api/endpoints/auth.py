@@ -4,11 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from app.api.dependencies.deps import get_db
+from app.api.dependencies.deps import get_db, get_current_user
 from app.core import security
 from app.core.config import settings
 from app.models.user import User, ContributorProfile, FundraiserProfile
-from app.schemas.user import ContributorRegister, FundraiserRegister, Token, User as UserSchema
+from app.schemas.user import ContributorRegister, FundraiserRegister, Token, User as UserSchema, UserOut
 
 router = APIRouter()
 
@@ -63,7 +63,8 @@ def register_contributor(
     profile = ContributorProfile(
         contributor_id=user.account_id,
         uname=data.uname,
-        phone_number=data.phone_number
+        phone_number=data.phone_number,
+        public_key=data.public_key
     )
     db.add(profile)
     db.commit()
@@ -108,4 +109,13 @@ def register_fundraiser(
     db.commit()
     db.refresh(user)
     return user
+
+@router.get("/me", response_model=UserOut)
+def read_user_me(
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Get current user.
+    """
+    return current_user
 
