@@ -4,6 +4,9 @@ import 'discover_projects_page.dart';
 import 'contributor_wallet_page.dart';
 import '../../ui/pages/contributor/pending_votes_page.dart';
 import '../../ui/pages/contributor/portfolio_page.dart';
+import '../../data/services/contribution_service.dart';
+import '../../data/models/contributor_stats.dart';
+import 'package:intl/intl.dart';
 
 class ContributorDashboard extends StatefulWidget {
   const ContributorDashboard({super.key});
@@ -14,6 +17,25 @@ class ContributorDashboard extends StatefulWidget {
 
 class _ContributorDashboardState extends State<ContributorDashboard> {
   int _selectedIndex = 0;
+  final ContributionService _contributionService = ContributionService();
+  ContributorStats _stats = ContributorStats.empty();
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchStats();
+  }
+
+  Future<void> _fetchStats() async {
+    final stats = await _contributionService.getContributorStats();
+    if (mounted) {
+      setState(() {
+        _stats = stats;
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,19 +107,21 @@ class _ContributorDashboardState extends State<ContributorDashboard> {
             BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10)),
           ],
         ),
-        child: const Column(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Total Portfolio Value', style: TextStyle(color: Colors.white70, fontSize: 14)),
-            SizedBox(height: 8),
-            Text('KES 245,000.00', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
-            SizedBox(height: 24),
+            const Text('Total Portfolio Value', style: TextStyle(color: Colors.white70, fontSize: 14)),
+            const SizedBox(height: 8),
+            Text(
+              NumberFormat.currency(symbol: 'KES ', decimalDigits: 2).format(_stats.totalPortfolioValue),
+              style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _StatItem(label: 'Investments', value: '12'),
-                _StatItem(label: 'Avg ROI', value: '8.4%'),
-                _StatItem(label: 'Impact', value: 'High'),
+                _StatItem(label: 'Investments', value: _stats.activeInvestmentsCount.toString()),
+                // ROI and Impact removed per user request
               ],
             ),
           ],

@@ -23,6 +23,7 @@ class ApiConfig {
   // Contribution & Escrow
   static String get contributions => '$baseUrl/contributions/';
   static String get myContributions => '$baseUrl/contributions/my-contributions';
+  static String get contributorStats => '$baseUrl/contributions/stats';
   static String get escrowStatus => '$baseUrl/escrow/';
 
   // Voting

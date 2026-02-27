@@ -39,3 +39,7 @@ class UserContributionOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class ContributorStats(BaseModel):
+    total_portfolio_value: Decimal
+    active_investments_count: int
