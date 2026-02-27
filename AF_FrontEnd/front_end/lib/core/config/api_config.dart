@@ -14,6 +14,7 @@ class ApiConfig {
   // Campaign Endpoints
   static String get campaigns => '$baseUrl/campaigns/'; // Trailing slash for POST /
   static String get myCampaigns => '$baseUrl/campaigns/my-campaigns';
+  static String get fundraiserStats => '$baseUrl/campaigns/fundraiser/stats';
   static String launchCampaign(String id) => '$baseUrl/campaigns/$id/launch';
   static String campaignProgress(String id) => '$baseUrl/campaigns/$id/progress';
   static String campaignTimeline(String id) => '$baseUrl/campaigns/$id/timeline';

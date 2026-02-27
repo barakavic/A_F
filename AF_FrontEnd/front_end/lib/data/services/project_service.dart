@@ -1,6 +1,7 @@
 import 'api_service.dart';
 import '../../core/config/api_config.dart';
 import '../models/project.dart';
+import '../models/fundraiser_stats.dart';
 
 class ProjectService {
   final ApiService _apiService = ApiService();
@@ -46,6 +47,20 @@ class ProjectService {
     } catch (e) {
       print('CREATE ERROR: $e');
       return false;
+    }
+  }
+
+  // Fetch fundraiser statistics
+  Future<FundraiserStats> getFundraiserStats() async {
+    try {
+      final response = await _apiService.get(ApiConfig.fundraiserStats);
+      if (response.statusCode == 200) {
+        return FundraiserStats.fromJson(response.data);
+      }
+      return FundraiserStats.empty();
+    } catch (e) {
+      print('STATS FETCH ERROR: $e');
+      return FundraiserStats.empty();
     }
   }
 }

@@ -7,6 +7,7 @@ import '../../../providers/project_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../campaign_creation/campaign_wizard_page.dart';
 import 'campaign_timeline_page.dart';
+import 'package:intl/intl.dart';
 
 class FundraiserDashboardPage extends ConsumerWidget {
   const FundraiserDashboardPage({super.key});
@@ -29,7 +30,10 @@ class FundraiserDashboardPage extends ConsumerWidget {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(myProjectsProvider),
+        onRefresh: () async {
+          ref.invalidate(myProjectsProvider);
+          ref.invalidate(fundraiserStatsProvider);
+        },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(24),
@@ -38,7 +42,7 @@ class FundraiserDashboardPage extends ConsumerWidget {
             children: [
               _buildWelcomeHeader(context),
               const SizedBox(height: 32),
-              _buildStatsGrid(),
+              _buildStatsGrid(ref),
               const SizedBox(height: 40),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -90,13 +94,32 @@ class FundraiserDashboardPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatsGrid() {
-    return Row(
-      children: [
-        Expanded(child: _buildStatCard("Total Raised", "KES 1.2M", Icons.account_balance_wallet, Colors.blue)),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatCard("Active Phases", "3", Icons.track_changes, Colors.orange)),
-      ],
+  Widget _buildStatsGrid(WidgetRef ref) {
+    final statsAsync = ref.watch(fundraiserStatsProvider);
+    final currencyFormatter = NumberFormat.compactCurrency(symbol: 'KES ');
+
+    return statsAsync.when(
+      data: (stats) => Row(
+        children: [
+          Expanded(child: _buildStatCard("Total Raised", currencyFormatter.format(stats.totalRaised), Icons.account_balance_wallet, Colors.blue)),
+          const SizedBox(width: 16),
+          Expanded(child: _buildStatCard("Active Phases", stats.activePhasesCount.toString(), Icons.track_changes, Colors.orange)),
+        ],
+      ),
+      loading: () => Row(
+        children: [
+          Expanded(child: _buildStatCard("Total Raised", "...", Icons.account_balance_wallet, Colors.blue)),
+          const SizedBox(width: 16),
+          Expanded(child: _buildStatCard("Active Phases", "...", Icons.track_changes, Colors.orange)),
+        ],
+      ),
+      error: (err, stack) => Row(
+        children: [
+          Expanded(child: _buildStatCard("Total Raised", "Error", Icons.account_balance_wallet, Colors.blue)),
+          const SizedBox(width: 16),
+          Expanded(child: _buildStatCard("Active Phases", "Error", Icons.track_changes, Colors.orange)),
+        ],
+      ),
     );
   }
 

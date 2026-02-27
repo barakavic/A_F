@@ -4,12 +4,13 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 
 from app.api.dependencies.deps import get_db, get_current_user
-from app.schemas.campaign import CampaignCreate, CampaignOut, CampaignUpdate, MilestoneOut
+from app.schemas.campaign import CampaignCreate, CampaignOut, CampaignUpdate, MilestoneOut, CampaignProgress, FundraiserStats
+from app.models.milestone import Milestone
 from app.models.user import User
 from app.models.campaign import Campaign
 from app.services.campaign_service import CampaignService
 from app.services.campaign_state_service import CampaignStateService
-from app.schemas.campaign import CampaignProgress
+from sqlalchemy import func
 from datetime import datetime
 
 router = APIRouter()
@@ -50,6 +51,33 @@ def read_my_campaigns(
     """
     campaigns = db.query(Campaign).filter(Campaign.fundraiser_id == current_user.account_id).all()
     return campaigns
+
+@router.get("/fundraiser/stats", response_model=FundraiserStats)
+def get_fundraiser_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Get aggregated statistics for the current fundraiser.
+    """
+    if current_user.role != 'fundraiser':
+        raise HTTPException(status_code=403, detail="Only fundraisers can access these stats")
+        
+    # Total Raised (Lifetime)
+    total_raised = db.query(func.sum(Campaign.total_contributions))\
+        .filter(Campaign.fundraiser_id == current_user.account_id).scalar() or 0
+        
+    # Active Phases: Milestones across all campaigns that are currently being worked on/reviewed
+    active_phases = db.query(Milestone)\
+        .join(Campaign)\
+        .filter(Campaign.fundraiser_id == current_user.account_id)\
+        .filter(Milestone.status.in_(['active', 'evidence_submitted', 'voting_open', 'revision_submitted']))\
+        .count()
+        
+    return {
+        "total_raised": total_raised,
+        "active_phases_count": active_phases
+    }
 
 @router.get("/", response_model=List[CampaignOut])
 def read_campaigns(

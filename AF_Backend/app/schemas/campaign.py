@@ -91,3 +91,7 @@ class CampaignProgress(BaseModel):
     current_milestone_number: Optional[int] = None
     next_action_required: str
     days_remaining: Optional[int] = None
+
+class FundraiserStats(BaseModel):
+    total_raised: Decimal
+    active_phases_count: int

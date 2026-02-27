@@ -1,5 +1,6 @@
 import '../models/project.dart';
 import '../models/campaign_details.dart';
+import '../models/fundraiser_stats.dart';
 import 'api_client.dart';
 import '../../core/config/api_config.dart';
 
@@ -72,6 +73,16 @@ class CampaignApi {
       final response = await _apiClient.get(ApiConfig.campaigns);
       List<dynamic> data = response.data;
       return data.map((json) => Project.fromJson(json)).toList();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Get aggregated statistics for the fundraiser dashboard
+  Future<FundraiserStats> getFundraiserStats() async {
+    try {
+      final response = await _apiClient.get(ApiConfig.fundraiserStats);
+      return FundraiserStats.fromJson(response.data);
     } catch (e) {
       rethrow;
     }
