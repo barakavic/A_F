@@ -107,12 +107,25 @@ class ApiService {
           return Exception('Connection timed out. Please check your internet connection.');
         case DioExceptionType.badResponse:
           final statusCode = error.response?.statusCode;
-          if (statusCode == 500) {
-            return Exception('Server error. Please try again later.');
-          } else if (statusCode == 401) {
-            return Exception('Unauthorized. Please login again.');
+          final dynamic data = error.response?.data;
+          
+          String? detailMessage;
+          if (data is Map && data.containsKey('detail')) {
+            detailMessage = data['detail'].toString();
           }
-          return Exception('Received invalid status code: $statusCode');
+
+          if (statusCode == 500) {
+            return Exception(detailMessage ?? 'Server error. Please try again later.');
+          } else if (statusCode == 401) {
+            return Exception(detailMessage ?? 'Unauthorized. Please login again.');
+          } else if (statusCode == 400) {
+            return Exception(detailMessage ?? 'Invalid request. Please check your input.');
+          } else if (statusCode == 403) {
+            return Exception(detailMessage ?? 'Access denied.');
+          } else if (statusCode == 404) {
+             return Exception(detailMessage ?? 'Resource not found.');
+          }
+          return Exception(detailMessage ?? 'An error occurred. Please try again.');
         case DioExceptionType.cancel:
           return Exception('Request to API was cancelled');
         case DioExceptionType.connectionError:
