@@ -129,12 +129,17 @@ class ApiService {
         case DioExceptionType.cancel:
           return Exception('Request to API was cancelled');
         case DioExceptionType.connectionError:
-          return Exception('No internet connection.');
+          return Exception('No internet connection. Please check if the server is running.');
+        case DioExceptionType.unknown:
+          if (error.message?.contains('SocketException') ?? false) {
+             return Exception('Cannot reach the server. Please check your network.');
+          }
+          return Exception('An unknown error occurred: ${error.message ?? 'Unknown cause'}');
         default:
-          return Exception('Unexpected error occurred: ${error.message}');
+          return Exception('Unexpected error occurred: ${error.message ?? error.type.toString()}');
       }
     } else {
-      return Exception('Unexpected error: $error');
+      return Exception('Local error: ${error.toString()}');
     }
   }
 }

@@ -35,6 +35,7 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _obscurePassword = true;
   bool _agreedToTerms = false;
   bool _agreedToPrivacy = false;
+  String _selectedCountryCode = '+254';
 
   @override
   void dispose() {
@@ -97,7 +98,7 @@ class _SignupScreenState extends State<SignupScreen> {
       profileData['br_number'] = _cr12Controller.text.trim();
     } else {
       profileData['uname'] = _nameController.text.trim();
-      profileData['phone_number'] = _phoneController.text.trim();
+      profileData['phone_number'] = '$_selectedCountryCode${_phoneController.text.trim()}';
     }
 
     String? publicKey;
@@ -179,6 +180,8 @@ class _SignupScreenState extends State<SignupScreen> {
                 onToggleVisibility: () => setState(() => _obscurePassword = !_obscurePassword),
                 onAgreedToTermsChanged: (val) => setState(() => _agreedToTerms = val!),
                 onAgreedToPrivacyChanged: (val) => setState(() => _agreedToPrivacy = val!),
+                selectedCountryCode: _selectedCountryCode,
+                onCountryCodeChanged: (code) => setState(() => _selectedCountryCode = code!),
                 onNext: _nextStep,
               ),
               OtpVerificationStep(

@@ -26,8 +26,8 @@ class ContributorProfile(Base):
     __tablename__ = "contributor_profile"
     
     contributor_id = Column(GUID(), ForeignKey("account.account_id"), primary_key=True)
-    uname = Column(String(120))
-    phone_number = Column(String(20))
+    uname = Column(String(120), unique=True, index=True)
+    phone_number = Column(String(20), unique=True, index=True)
     public_key = Column(String(66), nullable=True) # For digital signatures
     created_at = Column(DateTime, default=datetime.utcnow)
     

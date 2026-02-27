@@ -3,6 +3,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 
 from app.api.dependencies.deps import get_db, get_current_user
 from app.core import security
@@ -18,11 +19,24 @@ def login_access_token(
     db: Session = Depends(get_db) 
 ) -> Any:
     """
-    OAuth2 compatible token login, get an access token for future requests
+    OAuth2 compatible token login, supports Email, Username or Phone (for contributors)
     """
+    # 1. First try strictly by email in the main account table
     user = db.query(User).filter(User.email == form_data.username).first()
+    
+    # 2. If not found, try by Username (uname) or Phone in ContributorProfile
+    if not user:
+        user = db.query(User)\
+            .join(ContributorProfile, User.account_id == ContributorProfile.contributor_id)\
+            .filter(
+                or_(
+                    ContributorProfile.uname == form_data.username,
+                    ContributorProfile.phone_number == form_data.username
+                )
+            ).first()
+
     if not user or not security.verify_password(form_data.password, user.password_hash):
-        raise HTTPException(status_code=400, detail="Incorrect email or password")
+        raise HTTPException(status_code=400, detail="Incorrect email, username, or password")
     
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
@@ -39,15 +53,17 @@ def register_contributor(
     db: Session = Depends(get_db)
 ) -> Any:
     """
-    Register a new contributor with profile.
+    Register a new contributor with profile. Checks for duplicates.
     """
-    # Check if user exists
-    existing_user = db.query(User).filter(User.email == data.email).first()
-    if existing_user:
-        raise HTTPException(
-            status_code=400,
-            detail="User with this email already exists",
-        )
+    # Duplicate Checks
+    if db.query(User).filter(User.email == data.email).first():
+        raise HTTPException(status_code=400, detail="User with this email already exists")
+    
+    if db.query(ContributorProfile).filter(ContributorProfile.uname == data.uname).first():
+        raise HTTPException(status_code=400, detail="Username is already taken")
+    
+    if db.query(ContributorProfile).filter(ContributorProfile.phone_number == data.phone_number).first():
+        raise HTTPException(status_code=400, detail="Phone number is already registered")
     
     # Create account
     user = User(
@@ -80,12 +96,8 @@ def register_fundraiser(
     Register a new fundraiser with profile.
     """
     # Check if user exists
-    existing_user = db.query(User).filter(User.email == data.email).first()
-    if existing_user:
-        raise HTTPException(
-            status_code=400,
-            detail="User with this email already exists",
-        )
+    if db.query(User).filter(User.email == data.email).first():
+        raise HTTPException(status_code=400, detail="User with this email already exists")
     
     # Create account
     user = User(
@@ -118,4 +130,3 @@ def read_user_me(
     Get current user.
     """
     return current_user
-

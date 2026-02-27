@@ -19,6 +19,8 @@ class BasicInfoStep extends StatelessWidget {
   final VoidCallback onToggleVisibility;
   final ValueChanged<bool?> onAgreedToTermsChanged;
   final ValueChanged<bool?> onAgreedToPrivacyChanged;
+  final String selectedCountryCode;
+  final ValueChanged<String?> onCountryCodeChanged;
   final VoidCallback onNext;
 
   const BasicInfoStep({
@@ -38,6 +40,8 @@ class BasicInfoStep extends StatelessWidget {
     required this.onToggleVisibility,
     required this.onAgreedToTermsChanged,
     required this.onAgreedToPrivacyChanged,
+    required this.selectedCountryCode,
+    required this.onCountryCodeChanged,
     required this.onNext,
   });
 
@@ -93,7 +97,10 @@ class BasicInfoStep extends StatelessWidget {
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     validator: (val) => isFundraiser ? Validators.validateRequired(val, 'CR12 Number') : Validators.validatePhone(val),
                     keyboardType: isFundraiser ? TextInputType.text : TextInputType.phone,
-                    decoration: _buildInputDecoration(hint: isFundraiser ? 'Enter registration number' : '07XXXXXXXX'),
+                    decoration: _buildInputDecoration(
+                      hint: isFundraiser ? 'Enter registration number' : '7XXXXXXXX',
+                      prefix: !isFundraiser ? _buildCountryCodeDropdown() : null,
+                    ),
                   ),
                 ],
               ),
@@ -191,22 +198,6 @@ class BasicInfoStep extends StatelessWidget {
     return Align(alignment: Alignment.centerLeft, child: Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600)));
   }
 
-  InputDecoration _buildInputDecoration({String? hint, bool isPassword = false}) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: const TextStyle(color: Colors.grey, fontSize: 13),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      suffixIcon: isPassword
-          ? IconButton(
-              icon: Icon(obscurePassword ? Icons.visibility_off : Icons.visibility, color: Colors.grey),
-              onPressed: onToggleVisibility,
-            )
-          : null,
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
-    );
-  }
-
   Widget _buildCheckbox({required bool value, required String label, required ValueChanged<bool?> onChanged}) {
     return Row(
       children: [
@@ -226,6 +217,43 @@ class BasicInfoStep extends StatelessWidget {
           child: const Text('Login', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, decoration: TextDecoration.underline)),
         ),
       ],
+    );
+  }
+
+  Widget _buildCountryCodeDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: selectedCountryCode,
+          items: [
+            DropdownMenuItem(value: '+254', child: Text('🇰🇪 +254', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
+            DropdownMenuItem(value: '+256', child: Text('🇺🇬 +256', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
+            DropdownMenuItem(value: '+255', child: Text('🇹🇿 +255', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
+            DropdownMenuItem(value: '+250', child: Text('🇷🇼 +250', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
+          ],
+          onChanged: onCountryCodeChanged,
+          style: const TextStyle(color: AppColors.textPrimary),
+          icon: const Icon(Icons.arrow_drop_down, size: 20),
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _buildInputDecoration({String? hint, bool isPassword = false, Widget? prefix}) {
+    return InputDecoration(
+      hintText: hint,
+      prefixIcon: prefix,
+      hintStyle: const TextStyle(color: Colors.grey, fontSize: 13),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      suffixIcon: isPassword
+          ? IconButton(
+              icon: Icon(obscurePassword ? Icons.visibility_off : Icons.visibility, color: Colors.grey),
+              onPressed: onToggleVisibility,
+            )
+          : null,
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
     );
   }
 }
