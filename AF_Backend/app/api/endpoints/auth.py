@@ -55,6 +55,16 @@ def register_contributor(
     """
     Register a new contributor with profile. Checks for duplicates.
     """
+    def normalize_phone(phone: str) -> str:
+        # Standardize to local 9-digit format (7XXXXXXXX) for the check
+        # Removes +, 254, and leading 0
+        p = phone.strip().replace("+", "")
+        if p.startswith("254"):
+            p = p[3:]
+        if p.startswith("0"):
+            p = p[1:]
+        return p
+
     # Duplicate Checks
     if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(status_code=400, detail="User with this email already exists")
@@ -62,7 +72,10 @@ def register_contributor(
     if db.query(ContributorProfile).filter(ContributorProfile.uname == data.uname).first():
         raise HTTPException(status_code=400, detail="Username is already taken")
     
-    if db.query(ContributorProfile).filter(ContributorProfile.phone_number == data.phone_number).first():
+    # Check if a normalized version of this phone exists
+    norm_phone = normalize_phone(data.phone_number)
+    # Search for any phone that ends with the normalized 9 digits
+    if db.query(ContributorProfile).filter(ContributorProfile.phone_number.like(f"%{norm_phone}")).first():
         raise HTTPException(status_code=400, detail="Phone number is already registered")
     
     # Create account
