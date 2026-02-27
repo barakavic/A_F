@@ -77,8 +77,6 @@ class _ContributorDashboardState extends State<ContributorDashboard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildPortfolioCard(),
-          const SizedBox(height: 24),
-          _buildActionCard(context),
           const SizedBox(height: 32),
           const Text(
             'Active Investments',
