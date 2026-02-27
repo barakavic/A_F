@@ -90,8 +90,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 40),
 
-                    // Email / Phone Field
-                    _buildInputLabel('Email or Phone Number:'),
+                    // Email / Phone / Username Field
+                    _buildInputLabel('Email, Phone or Username:'),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _emailController,

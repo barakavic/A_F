@@ -12,8 +12,12 @@ class Validators {
     if (value == null || value.trim().isEmpty) {
       return 'Username is required';
     }
+    final trimmedValue = value.trim();
+    if (trimmedValue.length < 4) {
+      return 'Username must be at least 4 characters';
+    }
     final usernameRegex = RegExp(r'^[a-zA-Z0-9_]+$');
-    if (!usernameRegex.hasMatch(value.trim())) {
+    if (!usernameRegex.hasMatch(trimmedValue)) {
       return 'Username can only contain letters, numbers, and underscores';
     }
     return null;
