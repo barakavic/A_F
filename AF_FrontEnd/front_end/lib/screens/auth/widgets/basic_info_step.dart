@@ -63,12 +63,15 @@ class BasicInfoStep extends StatelessWidget {
               child: Column(
                 key: ValueKey<bool>(isFundraiser),
                 children: [
-                  _buildInputLabel(isFundraiser ? 'Company Name:' : 'Full Name:'),
+                  _buildInputLabel(isFundraiser ? 'Company Name:' : 'Username:'),
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: nameController,
-                    validator: (val) => Validators.validateRequired(val, isFundraiser ? 'Company Name' : 'Full Name'),
-                    decoration: _buildInputDecoration(hint: isFundraiser ? 'Enter company name' : 'Enter your full name'),
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: (val) => isFundraiser 
+                        ? Validators.validateRequired(val, 'Company Name')
+                        : Validators.validateUsername(val),
+                    decoration: _buildInputDecoration(hint: isFundraiser ? 'Enter company name' : 'Enter a unique username'),
                   ),
                   const SizedBox(height: 20),
                   
@@ -76,6 +79,7 @@ class BasicInfoStep extends StatelessWidget {
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: emailController,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
                     validator: Validators.validateEmail,
                     keyboardType: TextInputType.emailAddress,
                     decoration: _buildInputDecoration(hint: 'example@domain.com'),
@@ -86,6 +90,7 @@ class BasicInfoStep extends StatelessWidget {
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: isFundraiser ? cr12Controller : phoneController,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
                     validator: (val) => isFundraiser ? Validators.validateRequired(val, 'CR12 Number') : Validators.validatePhone(val),
                     keyboardType: isFundraiser ? TextInputType.text : TextInputType.phone,
                     decoration: _buildInputDecoration(hint: isFundraiser ? 'Enter registration number' : '07XXXXXXXX'),
@@ -99,6 +104,7 @@ class BasicInfoStep extends StatelessWidget {
             const SizedBox(height: 8),
             TextFormField(
               controller: passwordController,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               obscureText: obscurePassword,
               validator: Validators.validatePassword,
               decoration: _buildInputDecoration(hint: 'Min 8 characters', isPassword: true),
@@ -109,6 +115,7 @@ class BasicInfoStep extends StatelessWidget {
             const SizedBox(height: 8),
             TextFormField(
               controller: confirmPasswordController,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               obscureText: obscurePassword,
               validator: (val) => Validators.validateConfirmPassword(val, passwordController.text),
               decoration: _buildInputDecoration(hint: 'Repeat password', isPassword: true),

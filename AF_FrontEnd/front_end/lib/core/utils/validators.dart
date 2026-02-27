@@ -2,8 +2,19 @@ class Validators {
   Validators._();
 
   static String? validateRequired(String? value, String fieldName) {
-    if (value == null || value.isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return '$fieldName is required';
+    }
+    return null;
+  }
+
+  static String? validateUsername(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Username is required';
+    }
+    final usernameRegex = RegExp(r'^[a-zA-Z0-9_]+$');
+    if (!usernameRegex.hasMatch(value.trim())) {
+      return 'Username can only contain letters, numbers, and underscores';
     }
     return null;
   }
@@ -12,8 +23,9 @@ class Validators {
     if (value == null || value.isEmpty) {
       return 'Email is required';
     }
+    final trimmedValue = value.trim();
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(value)) {
+    if (!emailRegex.hasMatch(trimmedValue)) {
       return 'Enter a valid email address';
     }
     return null;
@@ -33,8 +45,9 @@ class Validators {
     if (value == null || value.isEmpty) {
       return 'Phone number is required';
     }
+    final trimmedValue = value.trim();
     final phoneRegex = RegExp(r'^(?:254|\+254|0)?([71][0-9]{8})$');
-    if (!phoneRegex.hasMatch(value)) {
+    if (!phoneRegex.hasMatch(trimmedValue)) {
       return 'Enter a valid Kenyan phone number';
     }
     return null;
