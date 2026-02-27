@@ -10,15 +10,15 @@ class LoginOptionsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
+      body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               const SizedBox(
-                height: 350.0,
+                height: 60.0,
               ),
               Image.asset(
                 'assets/icon/ascent_icon.png',
@@ -34,19 +34,19 @@ class LoginOptionsPage extends StatelessWidget {
                     MaterialPageRoute(builder: (context) => const LoginScreen()),
                   );
                 },
-                label: Text("Continue with Email"),
-                icon: Icon(Icons.email),
+                label: const Text("Continue with Email"),
+                icon: const Icon(Icons.email),
                 style: ElevatedButton.styleFrom(
-                  minimumSize: Size(double.infinity, 20),
+                  minimumSize: const Size(double.infinity, 54),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: () {},
-                label: Text("Continue With Google"),
+                label: const Text("Continue With Google"),
                 icon: Image.asset(
                   'assets/icon/google_icon.png',
                   width: 24,
@@ -55,7 +55,7 @@ class LoginOptionsPage extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: Colors.black,
-                  minimumSize: const Size(double.infinity, 20),
+                  minimumSize: const Size(double.infinity, 54),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -68,7 +68,6 @@ class LoginOptionsPage extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: () async {
                   final authService = AuthService();
-                  // Show loading indicator
                   showDialog(
                     context: context,
                     barrierDismissible: false,
@@ -80,7 +79,7 @@ class LoginOptionsPage extends StatelessWidget {
                     final role = result['role'] ?? 'fundraiser';
 
                     if (context.mounted) {
-                      Navigator.pop(context); // Remove loading
+                      Navigator.pop(context);
                       if (role == 'fundraiser') {
                         Navigator.pushReplacement(
                           context,
@@ -95,7 +94,7 @@ class LoginOptionsPage extends StatelessWidget {
                     }
                   } catch (e) {
                     if (context.mounted) {
-                      Navigator.pop(context); // Remove loading
+                      Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text("Bypass login failed: $e")),
                       );
@@ -107,7 +106,7 @@ class LoginOptionsPage extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orangeAccent,
                   foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 20),
+                  minimumSize: const Size(double.infinity, 54),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -124,11 +123,10 @@ class LoginOptionsPage extends StatelessWidget {
                   );
 
                   try {
-                    // Using the dev contributor account for bypass
                     await authService.login('victor@test.com', 'password123');
                     
                     if (context.mounted) {
-                      Navigator.pop(context); // Remove loading
+                      Navigator.pop(context);
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (context) => const ContributorDashboard()),
@@ -136,8 +134,7 @@ class LoginOptionsPage extends StatelessWidget {
                     }
                   } catch (e) {
                     if (context.mounted) {
-                      Navigator.pop(context); // Remove loading
-                      // Even if login fails, jump for demo stability
+                      Navigator.pop(context);
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (context) => const ContributorDashboard()),
@@ -150,29 +147,28 @@ class LoginOptionsPage extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blueGrey,
                   foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 20),
+                  minimumSize: const Size(double.infinity, 54),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
-              Spacer(),
+              const SizedBox(height: 40),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   TextButton(
                     onPressed: () {},
-                    child: Text(
+                    child: const Text(
                       'Privacy Policy',
-                      style: TextStyle(color: Colors.blueGrey),
+                      style: TextStyle(color: Colors.blueGrey, fontSize: 12),
                     ),
                   ),
                   TextButton(
                     onPressed: () {},
-                    child: Text(
+                    child: const Text(
                       'Terms and Conditions',
-                      style: TextStyle(color: Colors.blueGrey),
+                      style: TextStyle(color: Colors.blueGrey, fontSize: 12),
                     ),
                   )
                 ],
