@@ -6,6 +6,7 @@ import '../../ui/pages/contributor/pending_votes_page.dart';
 import '../../ui/pages/contributor/portfolio_page.dart';
 import '../../data/services/contribution_service.dart';
 import '../../data/models/contributor_stats.dart';
+import '../../data/models/contribution.dart';
 import 'package:intl/intl.dart';
 
 class ContributorDashboard extends StatefulWidget {
@@ -19,21 +20,36 @@ class _ContributorDashboardState extends State<ContributorDashboard> {
   int _selectedIndex = 0;
   final ContributionService _contributionService = ContributionService();
   ContributorStats _stats = ContributorStats.empty();
+  List<UserContribution> _contributions = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchStats();
+    _fetchData();
   }
 
-  Future<void> _fetchStats() async {
-    final stats = await _contributionService.getContributorStats();
-    if (mounted) {
-      setState(() {
-        _stats = stats;
-        _isLoading = false;
-      });
+  Future<void> _fetchData() async {
+    try {
+      final results = await Future.wait([
+        _contributionService.getContributorStats(),
+        _contributionService.getMyContributions(),
+      ]);
+
+      if (mounted) {
+        setState(() {
+          _stats = results[0] as ContributorStats;
+          _contributions = results[1] as List<UserContribution>;
+        });
+      }
+    } catch (e) {
+      debugPrint('Dashboard fetch error: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -83,8 +99,28 @@ class _ContributorDashboardState extends State<ContributorDashboard> {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          _buildContributionListItem('Solar for Schools', 'Renewable Energy', 0.75, 'KES 15K'),
-          _buildContributionListItem('Vertical Farming', 'AgriTech', 0.40, 'KES 5K'),
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _contributions.isEmpty
+                  ? Center(
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 20),
+                          Icon(Icons.inventory_2_outlined, color: Colors.grey.shade300, size: 64),
+                          const SizedBox(height: 16),
+                          Text('No active projects', style: TextStyle(color: Colors.grey.shade400, fontSize: 13)),
+                        ],
+                      ),
+                    )
+                  : Column(
+                      children: _contributions
+                          .map((c) => _buildContributionListItem(
+                                c.campaignTitle,
+                                c.status,
+                                c.amount,
+                              ))
+                          .toList(),
+                    ),
         ],
       ),
     );
@@ -197,7 +233,23 @@ class _ContributorDashboardState extends State<ContributorDashboard> {
     );
   }
 
-  Widget _buildContributionListItem(String title, String category, double progress, String amount) {
+  Widget _buildContributionListItem(String title, String status, double amount) {
+    Color statusColor;
+    switch (status.toLowerCase()) {
+      case 'completed':
+      case 'active':
+        statusColor = Colors.green;
+        break;
+      case 'pending':
+        statusColor = Colors.orange;
+        break;
+      case 'failed':
+        statusColor = Colors.red;
+        break;
+      default:
+        statusColor = Colors.grey;
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -208,11 +260,30 @@ class _ContributorDashboardState extends State<ContributorDashboard> {
       ),
       child: Row(
         children: [
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-            Text(category, style: const TextStyle(color: Colors.grey, fontSize: 11)),
-          ])),
-          Text(amount, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    status.toUpperCase(),
+                    style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            NumberFormat.currency(symbol: 'KES ', decimalDigits: 0).format(amount),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );

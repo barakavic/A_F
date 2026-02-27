@@ -36,6 +36,6 @@ class ApiConfig {
   static String get stkPush => '$baseUrl/payments/stk-push';
 
   // Network Settings
-  static const int connectTimeout = 30000;
-  static const int receiveTimeout = 30000;
+  static const int connectTimeout = 10000;
+  static const int receiveTimeout = 10000;
 }
