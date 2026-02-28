@@ -16,7 +16,7 @@ class ActiveProjectsPage extends ConsumerStatefulWidget {
 
 class ActiveProjectsPageState extends ConsumerState<ActiveProjectsPage> {
   void _refreshProjects() {
-    ref.invalidate(activeProjectsProvider);
+    ref.invalidate(myProjectsProvider);
   }
 
   void showCreateCampaignSheet() {
@@ -49,36 +49,36 @@ class ActiveProjectsPageState extends ConsumerState<ActiveProjectsPage> {
               ],
             ),
           ),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () async => _refreshProjects(),
-              child: ref.watch(activeProjectsProvider).when(
-                    data: (projects) {
-                      if (projects.isEmpty) return _buildEmptyState();
-                      return ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        itemCount: projects.length,
-                        itemBuilder: (context, index) {
-                          return _buildProjectCard(context, projects[index]);
-                        },
-                      );
+      Expanded(
+        child: RefreshIndicator(
+          onRefresh: () async => _refreshProjects(),
+          child: ref.watch(myProjectsProvider).when(
+                data: (projects) {
+                  if (projects.isEmpty) return _buildEmptyState();
+                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    itemCount: projects.length,
+                    itemBuilder: (context, index) {
+                      return _buildProjectCard(context, projects[index]);
                     },
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (err, stack) => Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text("Failed to load projects"),
-                          TextButton(
-                            onPressed: _refreshProjects,
-                            child: const Text("Retry"),
-                          ),
-                        ],
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, stack) => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("Failed to load projects"),
+                      TextButton(
+                        onPressed: _refreshProjects,
+                        child: const Text("Retry"),
                       ),
-                    ),
+                    ],
                   ),
-            ),
-          ),
+                ),
+              ),
+        ),
+      ),
         ],
       ),
     );
