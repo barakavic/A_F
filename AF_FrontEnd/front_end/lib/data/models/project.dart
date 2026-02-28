@@ -9,6 +9,7 @@ class Project {
   final double? alphaValue;
   final double phaseProgress; 
   final String? fundraiserId;
+  final int numPhases;
 
   Project({
     this.id,
@@ -21,6 +22,7 @@ class Project {
     this.alphaValue,
     this.phaseProgress = 0.0,
     this.fundraiserId,
+    this.numPhases = 0,
   });
 
   factory Project.fromJson(Map<String, dynamic> json) {
@@ -41,6 +43,7 @@ class Project {
       durationMonths: json['duration_d'] ?? 12,
       phaseProgress: 0.0, 
       fundraiserId: json['fundraiser_id']?.toString(),
+      numPhases: json['num_phases_p'] ?? 0,
     );
   }
 
@@ -50,7 +53,8 @@ class Project {
       'description': description,
       'funding_goal': goalAmount,
       'duration_months': durationMonths,
-      'campaign_type': 'donation', 
+      'campaign_type': 'donation',
+      'num_phases': numPhases,
     };
   }
 }

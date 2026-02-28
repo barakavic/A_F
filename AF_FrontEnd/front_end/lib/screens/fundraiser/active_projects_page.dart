@@ -6,6 +6,7 @@ import '../../providers/project_provider.dart';
 import 'project_management_detail.dart';
 import '../../ui/pages/campaign_creation/campaign_wizard_page.dart';
 import 'widgets/create_campaign_form.dart';
+import '../../ui/pages/fundraiser/campaign_timeline_page.dart';
 
 class ActiveProjectsPage extends ConsumerStatefulWidget {
   const ActiveProjectsPage({super.key});
@@ -103,7 +104,7 @@ class ActiveProjectsPageState extends ConsumerState<ActiveProjectsPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ProjectManagementDetail(projectName: project.title),
+            builder: (context) => CampaignTimelinePage(project: project),
           ),
         );
       },

@@ -11,6 +11,7 @@ class AuthService {
   static const String _tokenKey = 'jwt_token';
   static const String _userRoleKey = 'user_role';
   static const String _userNameKey = 'user_full_name';
+  static const String _userIdKey = 'user_id';
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
@@ -27,9 +28,10 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final token = response.data['access_token'];
-        final role = response.data['role'] ?? 'fundraiser'; // Default to fundraiser if not provided
+        final role = response.data['role'] ?? 'fundraiser';
+        final userId = response.data['account_id'];
 
-        await _saveAuthData(token, role);
+        await _saveAuthData(token, role, userId);
         
         // Fetch full profile to get the name
         try {
@@ -84,9 +86,12 @@ class AuthService {
     }
   }
 
-  Future<void> _saveAuthData(String token, String role) async {
+  Future<void> _saveAuthData(String token, String role, [String? userId]) async {
     await _storage.write(key: _tokenKey, value: token);
     await _storage.write(key: _userRoleKey, value: role);
+    if (userId != null) {
+      await _storage.write(key: _userIdKey, value: userId);
+    }
   }
 
   Future<String?> getToken() async {
@@ -99,6 +104,10 @@ class AuthService {
 
   Future<String?> getUserDisplayName() async {
     return await _storage.read(key: _userNameKey);
+  }
+
+  Future<String?> getUserId() async {
+    return await _storage.read(key: _userIdKey);
   }
 
   Future<Map<String, dynamic>> getProfile() async {

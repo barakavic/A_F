@@ -43,10 +43,11 @@ class ProjectService {
         ApiConfig.campaigns,
         data: project.toJson(),
       );
+      print('CREATE RESPONSE: ${response.statusCode} | ${response.data}');
       return response.statusCode == 201 || response.statusCode == 200;
     } catch (e) {
       print('CREATE ERROR: $e');
-      return false;
+      rethrow;
     }
   }
 

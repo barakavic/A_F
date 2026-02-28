@@ -8,6 +8,7 @@ class AuthProvider extends ChangeNotifier {
   bool _isAuthenticated = false;
   String? _userRole;
   String? _userDisplayName;
+  String? _userId;
   String? _errorMessage;
 
   // Getters
@@ -15,6 +16,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated => _isAuthenticated;
   String? get userRole => _userRole;
   String? get userDisplayName => _userDisplayName;
+  String? get userId => _userId;
   String? get errorMessage => _errorMessage;
 
   // Check if user is already logged in on app start
@@ -28,10 +30,12 @@ class AuthProvider extends ChangeNotifier {
         _isAuthenticated = true;
         _userRole = await _authService.getUserRole();
         _userDisplayName = await _authService.getUserDisplayName();
+        _userId = await _authService.getUserId();
       } else {
         _isAuthenticated = false;
         _userRole = null;
         _userDisplayName = null;
+        _userId = null;
       }
     } catch (e) {
       _isAuthenticated = false;
@@ -51,6 +55,7 @@ class AuthProvider extends ChangeNotifier {
       _isAuthenticated = true;
       _userRole = data['role'];
       _userDisplayName = await _authService.getUserDisplayName();
+      _userId = await _authService.getUserId();
       _setLoading(false);
       return true;
     } catch (e) {
@@ -92,6 +97,8 @@ class AuthProvider extends ChangeNotifier {
     await _authService.logout();
     _isAuthenticated = false;
     _userRole = null;
+    _userDisplayName = null;
+    _userId = null;
     notifyListeners();
   }
 

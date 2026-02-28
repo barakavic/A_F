@@ -56,6 +56,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str
     role: str
+    account_id: UUID
 
 class TokenData(BaseModel):
     account_id: Optional[str] = None

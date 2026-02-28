@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart' as legacy_provider;
 import '../../../core/constants/app_colors.dart';
 import '../../../providers/campaign_wizard_provider.dart';
 import '../../../providers/project_provider.dart';
+import '../../../providers/auth_provider.dart' as auth;
 
 class CampaignWizardPage extends ConsumerStatefulWidget {
   const CampaignWizardPage({super.key});
@@ -85,8 +87,15 @@ class _CampaignWizardPageState extends ConsumerState<CampaignWizardPage> {
   void _submit() async {
     final state = ref.read(campaignWizardProvider);
     
-    // Using the dev account UUID directly to avoid session retrieval hassle for the panel demo
-    const fundraiserId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"; 
+    // Fetch the actual fundraiser ID from AuthProvider
+    final fundraiserId = legacy_provider.Provider.of<auth.AuthProvider>(context, listen: false).userId;
+    
+    if (fundraiserId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Session expired. Please login again.'), backgroundColor: Colors.red),
+      );
+      return;
+    }
 
     final project = state.toProject(fundraiserId);
 
@@ -96,19 +105,22 @@ class _CampaignWizardPageState extends ConsumerState<CampaignWizardPage> {
       final success = await ref.read(projectServiceProvider).createProject(project);
       if (success && mounted) {
         ref.invalidate(activeProjectsProvider);
+        ref.invalidate(myProjectsProvider);
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Campaign created successfully!')),
         );
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to create campaign'), backgroundColor: Colors.red),
+          const SnackBar(content: Text('Failed to create campaign: Unknown error'), backgroundColor: Colors.red),
         );
       }
     } catch (e) {
       if (mounted) {
+        // Clean up the "Exception: " prefix if present for better UX
+        final message = e.toString().replaceFirst('Exception: ', '');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Error: $message'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -395,9 +407,9 @@ class _CampaignWizardPageState extends ConsumerState<CampaignWizardPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildAlgoStat("Risk factor (C)", "0.125", Colors.orange),
+              _buildAlgoStat("Risk factor (C)", state.estimatedRiskC.toStringAsFixed(3), Colors.orange),
               Container(height: 30, width: 1, color: Colors.grey.shade200),
-              _buildAlgoStat("Phase count (P)", "6", Colors.blue),
+              _buildAlgoStat("Phase count (P)", state.estimatedPhaseCount.toString(), Colors.blue),
             ],
           ),
           const SizedBox(height: 24),
@@ -418,11 +430,13 @@ class _CampaignWizardPageState extends ConsumerState<CampaignWizardPage> {
   }
 
   Widget _buildMiniWeightChart() {
+    final state = ref.watch(campaignWizardProvider);
+    final count = state.estimatedPhaseCount;
     return SizedBox(
       height: 60,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
-        children: List.generate(6, (index) {
+        children: List.generate(count, (index) {
           final height = 20.0 + (index * 8);
           return Expanded(
             child: Container(

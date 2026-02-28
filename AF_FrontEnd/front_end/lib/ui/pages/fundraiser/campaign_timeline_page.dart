@@ -78,7 +78,7 @@ class CampaignTimelinePage extends ConsumerWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _statItem("TOTAL BUDGET", "KES ${project.goalAmount.toInt()}"),
-        _statItem("PHASES", "6"),
+        _statItem("PHASES", project.numPhases.toString()),
         _statItem("STATUS", project.status.toUpperCase(), color: AppColors.primary),
       ],
     );

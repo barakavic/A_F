@@ -45,7 +45,7 @@ def login_access_token(
     access_token = security.create_access_token(
         subject=user.account_id, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer", "role": user.role}
+    return {"access_token": access_token, "token_type": "bearer", "role": user.role, "account_id": user.account_id}
 
 @router.post("/register/contributor", response_model=UserSchema)
 def register_contributor(

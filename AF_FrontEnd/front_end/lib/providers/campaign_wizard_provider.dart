@@ -52,6 +52,38 @@ class CampaignWizardState {
     );
   }
 
+  double get estimatedRiskC {
+    // Map categories to approximate risk factors for preview
+    switch (category) {
+      case 'Water & Sanitation': return 0.45;
+      case 'Green Energy': return 0.55;
+      case 'Education': return 0.40;
+      case 'Healthcare': return 0.50;
+      case 'Technology': return 0.65;
+      case 'Agriculture': return 0.60;
+      default: return 0.50;
+    }
+  }
+
+  int get estimatedPhaseCount {
+    if (goalAmount <= 0) return 3;
+    
+    // Simplified version of backend algorithm
+    const double fPrime = 1000000.0;
+    const double pMax = 12.0;
+    const double dRef = 12.0;
+    const double cRef = 0.6;
+    const int campaignTypeAdj = -1;
+
+    double nfrt = 3 + (durationMonths / (durationMonths + dRef)) + (estimatedRiskC / (estimatedRiskC + cRef)) + campaignTypeAdj;
+    double frfMax = pMax - nfrt;
+    double fRatio = (goalAmount / fPrime).clamp(0.0, 1.0);
+    double frf = fRatio * frfMax;
+    
+    int p = (nfrt + frf).round();
+    return p.clamp(3, 12);
+  }
+
   Project toProject(String fundraiserId) {
     return Project(
       title: title,
@@ -59,6 +91,7 @@ class CampaignWizardState {
       goalAmount: goalAmount,
       durationMonths: durationMonths,
       fundraiserId: fundraiserId,
+      numPhases: estimatedPhaseCount, // Temporary during creation
     );
   }
 }
