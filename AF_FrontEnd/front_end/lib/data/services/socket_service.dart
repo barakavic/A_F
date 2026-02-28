@@ -20,7 +20,7 @@ class SocketService {
     print('[SOCKET] Initializing with: $socketUrl');
 
     socket = IO.io(socketUrl, IO.OptionBuilder()
-      .setTransports(['websocket']) // Use WebSocket transport for efficiency
+      .setTransports(['websocket', 'polling']) // Allow polling as fallback
       .enableAutoConnect()
       .build());
 

@@ -73,7 +73,7 @@ app.include_router(milestones.router, prefix=f"{settings.API_V1_STR}/milestones"
 app.include_router(votes.router, prefix=f"{settings.API_V1_STR}/votes", tags=["Votes"])
 app.include_router(contributions.router, prefix=f"{settings.API_V1_STR}/contributions", tags=["Contributions"])
 app.include_router(payments.router, prefix=f"{settings.API_V1_STR}/payments", tags=["Payments"])
-# Mount Socket.io
+# Wrap with Socket.io last
 from app.core.socket_manager import sio
 import socketio
-app.mount("/socket.io", socketio.ASGIApp(sio, socketio_path=""))
+app = socketio.ASGIApp(sio, other_asgi_app=app)

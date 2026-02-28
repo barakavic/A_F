@@ -16,7 +16,7 @@ class _PhaseReviewPageState extends State<PhaseReviewPage> {
   final VotingService _votingService = VotingService();
   final SocketService _socketService = SocketService();
   bool _isSubmitting = false;
-  double _completionPercent = 1.0; // Standard value for review phase
+  double _completionPercent = 0.05; // Initial low value to show it's active
 
   @override
   void initState() {
@@ -25,8 +25,10 @@ class _PhaseReviewPageState extends State<PhaseReviewPage> {
   }
 
   void _initSocket() {
+    print('[SOCKET] Joining Room: ${widget.milestone.campaignId}');
     _socketService.joinCampaign(widget.milestone.campaignId);
     _socketService.onMilestoneUpdate((data) {
+      print('[SOCKET] Data received for room: ${data['milestone_id']} | My ID: ${widget.milestone.milestoneId}');
       if (data['milestone_id'] == widget.milestone.milestoneId) {
         if (data.containsKey('completion_percentage') && mounted) {
           setState(() {

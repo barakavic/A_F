@@ -64,6 +64,7 @@ class VotingService:
         )
         
         if not is_valid:
+            print(f"[VOTING] Invalid signature from {contributor_id} for milestone {milestone_id}")
             raise ValueError("Invalid cryptographic signature. Vote rejected.")
 
         # 5. Check if already voted
