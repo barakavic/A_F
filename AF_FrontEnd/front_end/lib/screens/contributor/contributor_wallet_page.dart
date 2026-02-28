@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../data/services/contribution_service.dart';
+import '../../data/services/voting_service.dart';
 import '../../data/models/wallet_stats.dart';
+import '../../data/models/pending_milestone.dart';
+import 'phase_review_page.dart';
 
 class ContributorWalletPage extends StatefulWidget {
   const ContributorWalletPage({super.key});
@@ -13,25 +16,33 @@ class ContributorWalletPage extends StatefulWidget {
 
 class _ContributorWalletPageState extends State<ContributorWalletPage> {
   final ContributionService _contributionService = ContributionService();
+  final VotingService _votingService = VotingService();
+  
   ContributorWalletStats _walletStats = ContributorWalletStats.empty();
+  List<PendingMilestone> _pendingVotes = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchWalletStats();
+    _fetchData();
   }
 
-  Future<void> _fetchWalletStats() async {
+  Future<void> _fetchData() async {
     try {
-      final stats = await _contributionService.getWalletStats();
+      final results = await Future.wait([
+        _contributionService.getWalletStats(),
+        _votingService.getPendingVotes(),
+      ]);
+      
       if (mounted) {
         setState(() {
-          _walletStats = stats;
+          _walletStats = results[0] as ContributorWalletStats;
+          _pendingVotes = results[1] as List<PendingMilestone>;
         });
       }
     } catch (e) {
-      debugPrint('Error fetching wallet stats: $e');
+      debugPrint('Error fetching wallet data: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -143,12 +154,16 @@ class _ContributorWalletPageState extends State<ContributorWalletPage> {
           const SizedBox(height: 32),
           
           ElevatedButton.icon(
-            onPressed: () => _showReviewProofDetail(context),
-            icon: const Icon(Icons.how_to_vote, size: 20),
-            label: const Text("Review Proof and Vote"),
+            onPressed: _pendingVotes.isEmpty ? null : () => _showReviewProofDetail(context),
+            icon: Badge(
+              label: Text(_pendingVotes.length.toString()),
+              isLabelVisible: _pendingVotes.isNotEmpty,
+              child: const Icon(Icons.how_to_vote, size: 20),
+            ),
+            label: Text(_pendingVotes.isEmpty ? "No Pending Votes" : "Review Proof and Vote (${_pendingVotes.length})"),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black87,
-              foregroundColor: Colors.white,
+              backgroundColor: _pendingVotes.isEmpty ? Colors.grey.shade200 : Colors.black87,
+              foregroundColor: _pendingVotes.isEmpty ? Colors.grey : Colors.white,
               minimumSize: const Size(double.infinity, 56),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               elevation: 0,
@@ -180,234 +195,20 @@ class _ContributorWalletPageState extends State<ContributorWalletPage> {
     );
   }
 
-  void _showReviewProofDetail(BuildContext context) {
-    Navigator.push(
+  Future<void> _showReviewProofDetail(BuildContext context) async {
+    if (_pendingVotes.isEmpty) return;
+
+    final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const ReviewProofPage()),
-    );
-  }
-}
-
-class ReviewProofPage extends StatelessWidget {
-  const ReviewProofPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text("Phase Review", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text("Phase #2", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-                    const Text("Equipment Install", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    const Text("Possible payout", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                    const Text("KES 45,000", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            
-            const Text("Phase Completion", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: const LinearProgressIndicator(
-                value: 0.8,
-                minHeight: 12,
-                backgroundColor: Color(0xFFEEEEEE),
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
-              ),
-            ),
-            
-            const SizedBox(height: 32),
-            
-            // Milestone Budget
-            _buildSectionHeader("Milestone Budget"),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.grey.shade100),
-              ),
-              child: Column(
-                children: [
-                  _buildBudgetItem("Solar Panels 5kW", "KES 30,000"),
-                  _buildBudgetItem("Mounting Brackets", "KES 10,000"),
-                  _buildBudgetItem("Wiring & Connectors", "KES 5,000"),
-                  const Divider(),
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("Total", style: TextStyle(fontWeight: FontWeight.bold)),
-                      Text("KES 45,000", style: TextStyle(fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 32),
-            
-            // Visual Proof
-            _buildSectionHeader("Visual Proof"),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(child: _buildProofImage('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTCw3C5G0dkQgnt7XH-bjglpq7lBhzQ0uOZ4w&s')),
-                const SizedBox(width: 12),
-                Expanded(child: _buildProofImage('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFd_dd5_OV72E2FVWIzny8iM9YbjYKDVtoIw&s')),
-              ],
-            ),
-            
-            const SizedBox(height: 32),
-            
-            // Phase Efficiency Summary
-            _buildPhaseEfficiencySummary(),
-            
-            const SizedBox(height: 48),
-            
-            // Decision Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent.withOpacity(0.1),
-                      foregroundColor: Colors.redAccent,
-                      minimumSize: const Size(double.infinity, 56),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      elevation: 0,
-                    ),
-                    child: const Text("Reject", style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(double.infinity, 56),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      elevation: 0,
-                    ),
-                    child: const Text("Approve", style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+      MaterialPageRoute(
+        builder: (context) => PhaseReviewPage(milestone: _pendingVotes.first),
       ),
     );
-  }
 
-  Widget _buildPhaseEfficiencySummary() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        children: [
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _PhaseSummaryItem(label: "Ttl Disbursement", value: "KES 44,500"),
-              _PhaseSummaryItem(label: "Verified Spend", value: "KES 42,000"),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text("Phase Status: ", style: TextStyle(color: Colors.grey, fontSize: 12)),
-              _buildStatusPill("Within Budget", Colors.green),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusPill(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
-    );
-  }
-
-  Widget _buildSectionHeader(String title) {
-    return Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey));
-  }
-
-  Widget _buildBudgetItem(String label, String amount) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: TextStyle(color: Colors.grey.shade700)),
-          Text(amount, style: const TextStyle(fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProofImage(String url) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: Image.network(url, height: 120, fit: BoxFit.cover),
-    );
-  }
-}
-
-class _PhaseSummaryItem extends StatelessWidget {
-  final String label;
-  final String value;
-  const _PhaseSummaryItem({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
-        const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-      ],
-    );
+    if (result == true) {
+      // Refresh data if a vote was cast
+      setState(() => _isLoading = true);
+      _fetchData();
+    }
   }
 }
