@@ -1,11 +1,61 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
+import '../../data/services/contribution_service.dart';
+import '../../data/models/wallet_stats.dart';
 
-class ContributorWalletPage extends StatelessWidget {
+class ContributorWalletPage extends StatefulWidget {
   const ContributorWalletPage({super.key});
 
   @override
+  State<ContributorWalletPage> createState() => _ContributorWalletPageState();
+}
+
+class _ContributorWalletPageState extends State<ContributorWalletPage> {
+  final ContributionService _contributionService = ContributionService();
+  ContributorWalletStats _walletStats = ContributorWalletStats.empty();
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchWalletStats();
+  }
+
+  Future<void> _fetchWalletStats() async {
+    try {
+      final stats = await _contributionService.getWalletStats();
+      if (mounted) {
+        setState(() {
+          _walletStats = stats;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching wallet stats: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  String _formatCurrency(double amount) {
+    return NumberFormat.currency(symbol: 'KES ', decimalDigits: 0).format(amount);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(40.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -21,11 +71,19 @@ class ContributorWalletPage extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _buildBalanceStat("Available funds", "KES 45,000", Colors.blue),
+                child: _buildBalanceStat(
+                  "Available funds", 
+                  _formatCurrency(_walletStats.availableFunds), 
+                  Colors.blue
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: _buildBalanceStat("Invested funds", "KES 200,000", AppColors.primary),
+                child: _buildBalanceStat(
+                  "Invested funds", 
+                  _formatCurrency(_walletStats.investedFunds), 
+                  AppColors.primary
+                ),
               ),
             ],
           ),
@@ -38,30 +96,49 @@ class ContributorWalletPage extends StatelessWidget {
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
           ),
           const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.grey.shade100),
-            ),
-            child: ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 4,
-              separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey.shade100),
-              itemBuilder: (context, index) {
-                final titles = ["Solar for Schools", "Borehole Drilling", "Vertical Farming", "Solar for Schools"];
-                final amouts = ["-KES 5,000", "-KES 12,000", "-KES 2,500", "-KES 1,000"];
-                final dates = ["Today, 2:30 PM", "Yesterday", "24 Jan 2026", "20 Jan 2026"];
-                
-                return ListTile(
-                  title: Text(titles[index], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  subtitle: Text(dates[index], style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                  trailing: Text(amouts[index], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.redAccent)),
-                );
-              },
-            ),
-          ),
+          
+          _walletStats.ledger.isEmpty
+              ? Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(40),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(Icons.history, color: Colors.grey.shade300, size: 48),
+                      const SizedBox(height: 12),
+                      const Text("No transactions yet", style: TextStyle(color: Colors.grey)),
+                    ],
+                  ),
+                )
+              : Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.grey.shade100),
+                  ),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _walletStats.ledger.length,
+                    separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey.shade100),
+                    itemBuilder: (context, index) {
+                      final entry = _walletStats.ledger[index];
+                      final dateStr = DateFormat('dd MMM yyyy, HH:mm').format(entry.date);
+                      
+                      return ListTile(
+                        title: Text(entry.campaignTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                        subtitle: Text(dateStr, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                        trailing: Text(
+                          "-${_formatCurrency(entry.amount)}", 
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.redAccent)
+                        ),
+                      );
+                    },
+                  ),
+                ),
           
           const SizedBox(height: 32),
           

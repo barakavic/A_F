@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from uuid import UUID
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, List
 
 class ContributionBase(BaseModel):
     campaign_id: UUID
@@ -43,3 +43,19 @@ class UserContributionOut(BaseModel):
 class ContributorStats(BaseModel):
     total_portfolio_value: Decimal
     active_investments_count: int
+
+class WalletLedgerEntry(BaseModel):
+    id: UUID
+    campaign_title: str
+    amount: Decimal
+    type: str # 'contribution' or 'disbursement' (future)
+    status: str
+    date: datetime
+
+class ContributorWalletStats(BaseModel):
+    available_funds: Decimal
+    invested_funds: Decimal
+    ledger: List[WalletLedgerEntry]
+
+    class Config:
+        from_attributes = True

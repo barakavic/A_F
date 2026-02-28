@@ -1,5 +1,6 @@
 import '../models/contributor_stats.dart';
 import '../models/contribution.dart';
+import '../models/wallet_stats.dart';
 import 'api_service.dart';
 import '../../core/config/api_config.dart';
 
@@ -18,6 +19,21 @@ class ContributionService {
     } catch (e) {
       print('[SERVICE] Stats Error: $e');
       return ContributorStats.empty();
+    }
+  }
+
+  Future<ContributorWalletStats> getWalletStats() async {
+    try {
+      print('[SERVICE] Requesting Wallet Stats...');
+      final response = await _apiService.get(ApiConfig.walletStats);
+      print('[SERVICE] Wallet Stats Response: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        return ContributorWalletStats.fromJson(response.data);
+      }
+      return ContributorWalletStats.empty();
+    } catch (e) {
+      print('[SERVICE] Wallet Stats Error: $e');
+      return ContributorWalletStats.empty();
     }
   }
 
