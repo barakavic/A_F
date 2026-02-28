@@ -63,9 +63,20 @@ def get_fundraiser_stats(
     if current_user.role != 'fundraiser':
         raise HTTPException(status_code=403, detail="Only fundraisers can access these stats")
         
-    # Total Raised (Lifetime)
-    total_raised = db.query(func.sum(Campaign.total_contributions))\
-        .filter(Campaign.fundraiser_id == current_user.account_id).scalar() or 0
+    # Aggregates across all campaigns
+    campaign_sums = db.query(
+        func.sum(Campaign.total_contributions).label("total_raised"),
+        func.sum(Campaign.total_released).label("total_released"),
+    ).filter(Campaign.fundraiser_id == current_user.account_id).first()
+    
+    total_raised = campaign_sums.total_raised or 0
+    total_released = campaign_sums.total_released or 0
+    escrow_balance = total_raised - total_released
+    
+    active_projects_count = db.query(Campaign)\
+        .filter(Campaign.fundraiser_id == current_user.account_id)\
+        .filter(Campaign.status.in_(['active', 'funded', 'in_phases']))\
+        .count()
         
     # Active Phases: Milestones across all campaigns that are currently being worked on/reviewed
     active_phases = db.query(Milestone)\
@@ -76,7 +87,10 @@ def get_fundraiser_stats(
         
     return {
         "total_raised": total_raised,
-        "active_phases_count": active_phases
+        "active_phases_count": active_phases,
+        "available_balance": total_released, # Funds passed through milestones
+        "escrow_balance": escrow_balance,     # Funds still in escrow
+        "active_projects_count": active_projects_count
     }
 
 @router.get("/", response_model=List[CampaignOut])

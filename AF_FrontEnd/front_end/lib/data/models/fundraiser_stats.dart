@@ -1,16 +1,25 @@
 class FundraiserStats {
   final double totalRaised;
   final int activePhasesCount;
+  final double availableBalance;
+  final double escrowBalance;
+  final int activeProjectsCount;
 
   FundraiserStats({
     required this.totalRaised,
     required this.activePhasesCount,
+    required this.availableBalance,
+    required this.escrowBalance,
+    required this.activeProjectsCount,
   });
 
   factory FundraiserStats.fromJson(Map<String, dynamic> json) {
     return FundraiserStats(
       totalRaised: _parseDouble(json['total_raised']),
       activePhasesCount: _parseInt(json['active_phases_count']),
+      availableBalance: _parseDouble(json['available_balance']),
+      escrowBalance: _parseDouble(json['escrow_balance']),
+      activeProjectsCount: _parseInt(json['active_projects_count']),
     );
   }
 
@@ -29,6 +38,12 @@ class FundraiserStats {
   }
 
   factory FundraiserStats.empty() {
-    return FundraiserStats(totalRaised: 0.0, activePhasesCount: 0);
+    return FundraiserStats(
+      totalRaised: 0.0, 
+      activePhasesCount: 0,
+      availableBalance: 0.0,
+      escrowBalance: 0.0,
+      activeProjectsCount: 0,
+    );
   }
 }

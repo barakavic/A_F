@@ -95,3 +95,6 @@ class CampaignProgress(BaseModel):
 class FundraiserStats(BaseModel):
     total_raised: Decimal
     active_phases_count: int
+    available_balance: Decimal
+    escrow_balance: Decimal
+    active_projects_count: int

@@ -1,11 +1,28 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 
-class FundraiserWalletPage extends StatelessWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../providers/project_provider.dart';
+import '../../data/models/fundraiser_stats.dart';
+
+class FundraiserWalletPage extends ConsumerWidget {
   const FundraiserWalletPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final statsAsync = ref.watch(fundraiserStatsProvider);
+
+    return statsAsync.when(
+      data: (stats) => _buildContent(context, stats),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Center(child: Text("Error loading wallet: $err")),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, FundraiserStats stats) {
+    final currencyFormat = NumberFormat.currency(symbol: 'KES ');
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -18,7 +35,7 @@ class FundraiserWalletPage extends StatelessWidget {
           const SizedBox(height: 20),
           
           // Balances Card
-          _buildBalancesCard(),
+          _buildBalancesCard(stats, currencyFormat),
           
           const SizedBox(height: 32),
           
@@ -71,93 +88,24 @@ class FundraiserWalletPage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           
-          // Scrollable Ledger
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.grey.shade100),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
-              ],
-            ),
-            child: ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 6,
-              separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey.shade100),
-              itemBuilder: (context, index) {
-                final transactions = [
-                  {"title": "Withdrawal to M-Pesa", "amt": "-KES 12,000", "status": "Completed", "date": "Today"},
-                  {"title": "Escrow Payout: Phase 1", "amt": "+KES 45,000", "status": "Completed", "date": "Yesterday"},
-                  {"title": "M-Pesa Deposit", "amt": "+KES 2,000", "status": "Completed", "date": "24 Jan"},
-                  {"title": "Platform Fee", "amt": "-KES 450", "status": "Completed", "date": "24 Jan"},
-                  {"title": "Escrow Payout: Final", "amt": "+KES 120,000", "status": "Completed", "date": "15 Jan"},
-                  {"title": "Withdrawal to Bank", "amt": "-KES 50,000", "status": "Processing", "date": "10 Jan"},
-                ];
-                
-                final item = transactions[index];
-                final isNegative = item['amt']!.startsWith('-');
-                
-                return ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  leading: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: isNegative ? Colors.red.withOpacity(0.05) : Colors.green.withOpacity(0.05),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      isNegative ? Icons.north_east : Icons.south_west,
-                      color: isNegative ? Colors.redAccent : Colors.green,
-                      size: 20,
-                    ),
-                  ),
-                  title: Text(item['title']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  subtitle: Text("${item['date']} • ${item['status']}", style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
-                  trailing: Text(item['amt']!, style: TextStyle(fontWeight: FontWeight.bold, color: isNegative ? Colors.black87 : Colors.green)),
-                );
-              },
-            ),
-          ),
+          // Ledger
+          _buildLedger(stats),
           
-          const SizedBox(height: 48),
-          
-          // Create Project Footer
-          Center(
-            child: Column(
-              children: [
-                const Text("Create Project:", style: TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 12),
-                FloatingActionButton(
-                  mini: true,
-                  onPressed: () {},
-                  backgroundColor: AppColors.primary,
-                  elevation: 2,
-                  child: const Icon(Icons.add, color: Colors.white),
-                ),
-              ],
-            ),
-          ),
           const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-  Widget _buildBalancesCard() {
+  Widget _buildBalancesCard(FundraiserStats stats, NumberFormat format) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Colors.blue.shade800, Colors.blue.shade600],
-        ),
+        color: AppColors.primary,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10)),
         ],
       ),
       child: Column(
@@ -165,13 +113,16 @@ class FundraiserWalletPage extends StatelessWidget {
         children: [
           const Text("Available Balance", style: TextStyle(color: Colors.white70, fontSize: 14)),
           const SizedBox(height: 8),
-          const Text("KES 84,250.00", style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+          Text(
+            format.format(stats.availableBalance), 
+            style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)
+          ),
           const SizedBox(height: 24),
           Row(
             children: [
-              _buildSmallBalance("Escrow (Locked)", "KES 245K"),
+              _buildSmallBalance("Escrow (Locked)", format.format(stats.escrowBalance)),
               const SizedBox(width: 40),
-              _buildSmallBalance("Projects", "3 Active"),
+              _buildSmallBalance("Projects", "${stats.activeProjectsCount} Active"),
             ],
           ),
         ],
@@ -187,6 +138,72 @@ class FundraiserWalletPage extends StatelessWidget {
         const SizedBox(height: 4),
         Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
       ],
+    );
+  }
+
+  Widget _buildLedger(FundraiserStats stats) {
+    if (stats.totalRaised == 0 && stats.availableBalance == 0) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(40),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.grey.shade100),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.history, color: Colors.grey.shade300, size: 48),
+            const SizedBox(height: 16),
+            const Text("No transactions yet", style: TextStyle(color: Colors.grey)),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.grey.shade100),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: ListView.separated(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 2, // Dummy entries for now if there's balance but no ledger implementation
+        separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey.shade100),
+        itemBuilder: (context, index) {
+          final transactions = [
+            {"title": "Escrow Payout: Phase 1", "amt": "+KES ${stats.availableBalance.toInt()}", "status": "Completed", "date": "Recent"},
+            {"title": "Initial Funding", "amt": "+KES ${stats.totalRaised.toInt()}", "status": "In Escrow", "date": "Recent"},
+          ];
+          
+          final item = transactions[index];
+          final isNegative = item['amt']!.startsWith('-');
+          
+          return ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            leading: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isNegative ? Colors.red.withOpacity(0.05) : Colors.green.withOpacity(0.05),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isNegative ? Icons.north_east : Icons.south_west,
+                color: isNegative ? Colors.redAccent : Colors.green,
+                size: 20,
+              ),
+            ),
+            title: Text(item['title']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            subtitle: Text("${item['date']} • ${item['status']}", style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
+            trailing: Text(item['amt']!, style: TextStyle(fontWeight: FontWeight.bold, color: isNegative ? Colors.black87 : Colors.green)),
+          );
+        },
+      ),
     );
   }
 }
