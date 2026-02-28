@@ -132,9 +132,10 @@ class ApiService {
           return Exception('No internet connection. Please check if the server is running.');
         case DioExceptionType.unknown:
           if (error.message?.contains('SocketException') ?? false) {
-             return Exception('Cannot reach the server. Please check your network.');
+             return Exception('Cannot reach the server - network error. Please check your internet or ngrok tunnel.');
           }
-          return Exception('An unknown error occurred: ${error.message ?? 'Unknown cause'}');
+          final stackTracer = error.stackTrace?.toString().split('\n').take(3).join(' | ') ?? 'No stackTrace';
+          return Exception('Network or Proxy Error (unknown): ${error.message ?? 'Unknown cause (Error type: ${error.type})'} | trace: $stackTracer');
         default:
           return Exception('Unexpected error occurred: ${error.message ?? error.type.toString()}');
       }
