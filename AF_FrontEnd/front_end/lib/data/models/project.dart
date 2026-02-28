@@ -33,6 +33,13 @@ class Project {
       return 0.0;
     }
 
+    int parseInt(dynamic value, {int defaultValue = 0}) {
+      if (value == null) return defaultValue;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? defaultValue;
+      return defaultValue;
+    }
+
     return Project(
       id: json['campaign_id']?.toString(),
       title: json['title'] ?? 'Untitled',
@@ -40,10 +47,10 @@ class Project {
       goalAmount: parseDouble(json['funding_goal_f']),
       raisedAmount: parseDouble(json['total_contributions']),
       status: json['status'] ?? 'draft',
-      durationMonths: json['duration_d'] ?? 12,
+      durationMonths: parseInt(json['duration_d'], defaultValue: 12),
       phaseProgress: 0.0, 
       fundraiserId: json['fundraiser_id']?.toString(),
-      numPhases: json['num_phases_p'] ?? 0,
+      numPhases: parseInt(json['num_phases_p']),
     );
   }
 

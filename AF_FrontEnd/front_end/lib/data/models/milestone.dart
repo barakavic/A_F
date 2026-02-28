@@ -50,14 +50,21 @@ class Milestone {
       return 0.0;
     }
 
+    int parseInt(dynamic value, {int defaultValue = 0}) {
+      if (value == null) return defaultValue;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? defaultValue;
+      return defaultValue;
+    }
+
     return Milestone(
-      id: json['milestone_id'].toString(),
-      milestoneNumber: json['milestone_number'],
+      id: json['milestone_id']?.toString() ?? '',
+      milestoneNumber: parseInt(json['milestone_number']),
       description: json['description'],
       phaseWeight: parseDouble(json['phase_weight_wi']),
       disbursementPercentage: parseDouble(json['disbursement_percentage_di']),
       releaseAmount: parseDouble(json['release_amount']),
-      status: json['status'],
+      status: json['status'] ?? 'pending',
       activatedAt: parseDate(json['activated_at']),
       evidenceSubmittedAt: parseDate(json['evidence_submitted_at']),
       votingStartDate: parseDate(json['voting_start_date']),
@@ -66,8 +73,8 @@ class Milestone {
       rejectedAt: parseDate(json['rejected_at']),
       fundsReleasedAt: parseDate(json['funds_released_at']),
       targetDeadline: parseDate(json['target_deadline']),
-      revisionCount: json['revision_count'] ?? 0,
-      maxRevisions: json['max_revisions'] ?? 1,
+      revisionCount: parseInt(json['revision_count']),
+      maxRevisions: parseInt(json['max_revisions'], defaultValue: 1),
     );
   }
 }

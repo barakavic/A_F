@@ -389,6 +389,7 @@ class _CampaignWizardPageState extends ConsumerState<CampaignWizardPage> {
   }
 
   Widget _buildAlgoPreview() {
+    final state = ref.watch(campaignWizardProvider);
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
