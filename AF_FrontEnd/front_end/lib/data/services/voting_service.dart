@@ -29,6 +29,7 @@ class VotingService {
     required String nonce,
   }) async {
     try {
+      print('[SERVICE] Submitting Vote for milestone: $milestoneId');
       final response = await _apiService.post(
         ApiConfig.submitVote,
         data: {
@@ -38,10 +39,11 @@ class VotingService {
           'nonce': nonce,
         },
       );
-      return response.statusCode == 200;
+      print('[SERVICE] Vote Response: ${response.statusCode}');
+      return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
       print('[SERVICE] Submit Vote Error: $e');
-      return false;
+      rethrow; // Rethrow to handle in UI if needed
     }
   }
 }

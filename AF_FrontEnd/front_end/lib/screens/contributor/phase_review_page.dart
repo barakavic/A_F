@@ -58,23 +58,32 @@ class _PhaseReviewPageState extends State<PhaseReviewPage> {
     
     // For now, we simulate the signature and nonce as we haven't implemented digital signing in the UI yet
     // In a real ASCENT implementation, this would involve a cryptographic signature from the user's private key
-    final success = await _votingService.submitVote(
-      milestoneId: widget.milestone.milestoneId,
-      voteValue: voteValue,
-      signature: "0x_MOCKED_SIGNATURE_FOR_DEMO",
-      nonce: DateTime.now().millisecondsSinceEpoch.toString(),
-    );
+    try {
+      final success = await _votingService.submitVote(
+        milestoneId: widget.milestone.milestoneId,
+        voteValue: voteValue,
+        signature: "0x_MOCKED_SIGNATURE_FOR_DEMO",
+        nonce: DateTime.now().millisecondsSinceEpoch.toString(),
+      );
 
-    if (mounted) {
-      setState(() => _isSubmitting = false);
-      if (success) {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Vote $voteValue submitted successfully!')),
+          );
+          Navigator.pop(context, true); // Return true to indicate a vote was cast
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to submit vote. Please try again.')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Vote $voteValue submitted successfully!')),
-        );
-        Navigator.pop(context, true); // Return true to indicate a vote was cast
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to submit vote. Please try again.')),
+          SnackBar(content: Text('Error: ${e.toString().replaceAll('Exception: ', '')}')),
         );
       }
     }

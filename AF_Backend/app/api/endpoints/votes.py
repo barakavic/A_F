@@ -39,7 +39,7 @@ class VoteTokenOut(BaseModel):
         from_attributes = True
 
 class VoteSubmit(BaseModel):
-    milestone_id: UUID
+    milestone_id: str
     vote_value: str # 'yes' or 'no'
     signature: str
     nonce: str
@@ -69,8 +69,11 @@ def generate_vote_token(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+from fastapi import Request
+
 @router.post("/submit")
-def submit_vote(
+async def submit_vote(
+    request: Request,
     vote_in: VoteSubmit,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -78,13 +81,19 @@ def submit_vote(
     """
     Submit a vote.
     """
+    print(f"[VOTING] Headers: {request.headers}")
+    print(f"[VOTING] Submission: {vote_in}")
+    print(f"[VOTING] User: {current_user.email} | ID: {current_user.account_id}")
     if current_user.role != 'contributor':
         raise HTTPException(status_code=403, detail="Only contributors can vote")
         
     try:
+        # Convert string ID to UUID
+        m_id = UUID(vote_in.milestone_id)
+        
         vote = VotingService.submit_vote(
             db=db,
-            milestone_id=vote_in.milestone_id,
+            milestone_id=m_id,
             contributor_id=current_user.account_id,
             vote_value=vote_in.vote_value,
             signature=vote_in.signature,

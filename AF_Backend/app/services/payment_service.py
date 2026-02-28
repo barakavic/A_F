@@ -65,7 +65,7 @@ class PaymentService:
             "Password": password,
             "Timestamp": timestamp,
             "TransactionType": "CustomerPayBillOnline",
-            "Amount": int(amount),
+            "Amount": 1, # TEST MODE: Only charge 1 KES regardless of actual contribution
             "PartyA": phone_number,
             "PartyB": settings.MPESA_SHORTCODE,
             "PhoneNumber": phone_number,
