@@ -15,13 +15,12 @@ class SocketService {
     // Determine the socket URL from API_BASE_URL
     // If API_BASE_URL is https://domain.com/api/v1, we want https://domain.com
     final uri = Uri.parse(ApiConfig.baseUrl);
-    final socketUrl = "${uri.scheme}://${uri.host}";
+    final socketUrl = uri.origin;
 
     print('[SOCKET] Initializing with: $socketUrl');
 
     socket = IO.io(socketUrl, IO.OptionBuilder()
       .setTransports(['websocket']) // Use WebSocket transport for efficiency
-      .setPath('/socket.io')       // Must match backend mount point
       .enableAutoConnect()
       .build());
 

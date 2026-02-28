@@ -1,8 +1,8 @@
-import 'api_client.dart';
+import '../services/api_service.dart';
 import '../../core/config/api_config.dart';
 
 class ContributionApi {
-  final ApiClient _apiClient = ApiClient();
+  final ApiService _apiClient = ApiService();
 
   /// Create a new contribution
   Future<Map<String, dynamic>> createContribution({

@@ -44,13 +44,16 @@ def get_contributor_wallet_stats(
     
     available_funds = 0
     ledger_entries = []
-    
+    print(f"[DEBUG] Wallet Stats for {current_user.account_id}: found {len(contributions)} contribution segments")
     for contr, escrow in contributions:
         # Calculate current share of the escrow balance
         if escrow.total_contributions > 0:
             share_percentage = float(contr.amount) / float(escrow.total_contributions)
             user_available_share = float(escrow.balance) * share_percentage
             available_funds += user_available_share
+            print(f"  - Segment: Amt={contr.amount}, EscrowBal={escrow.balance}, TotalContr={escrow.total_contributions}, Share={share_percentage}, UserShare={user_available_share}")
+        else:
+            print(f"  - Warning: escrow {escrow.escrow_id} has 0 total_contributions")
         
         # Add to ledger
         campaign = db.query(Campaign).filter(Campaign.campaign_id == contr.campaign_id).first()
@@ -63,6 +66,7 @@ def get_contributor_wallet_stats(
             "date": contr.created_at
         })
 
+    print(f"[DEBUG] Wallet Stats Final: Available={available_funds}, Invested={invested_funds}")
     return {
         "available_funds": available_funds,
         "invested_funds": invested_funds,

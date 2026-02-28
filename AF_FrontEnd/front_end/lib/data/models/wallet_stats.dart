@@ -48,12 +48,16 @@ class ContributorWalletStats {
   });
 
   factory ContributorWalletStats.fromJson(Map<String, dynamic> json) {
+    var ledgerData = json['ledger'];
+    List<WalletLedgerEntry> ledgerList = [];
+    if (ledgerData is List) {
+      ledgerList = ledgerData.map((e) => WalletLedgerEntry.fromJson(e)).toList();
+    }
+    
     return ContributorWalletStats(
       availableFunds: _parseDouble(json['available_funds']),
       investedFunds: _parseDouble(json['invested_funds']),
-      ledger: (json['ledger'] as List)
-          .map((e) => WalletLedgerEntry.fromJson(e))
-          .toList(),
+      ledger: ledgerList,
     );
   }
 

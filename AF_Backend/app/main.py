@@ -40,10 +40,7 @@ app.add_middleware(
     allow_methods=settings.allowed_methods_list,
     allow_headers=[settings.ALLOWED_HEADERS] if settings.ALLOWED_HEADERS != "*" else ["*"],
 )
-from app.core.socket_manager import socket_app
 
-# Mount Socket.io app
-app.mount("/socket.io", socket_app)
 
 @app.get("/")
 async def root():
@@ -76,3 +73,7 @@ app.include_router(milestones.router, prefix=f"{settings.API_V1_STR}/milestones"
 app.include_router(votes.router, prefix=f"{settings.API_V1_STR}/votes", tags=["Votes"])
 app.include_router(contributions.router, prefix=f"{settings.API_V1_STR}/contributions", tags=["Contributions"])
 app.include_router(payments.router, prefix=f"{settings.API_V1_STR}/payments", tags=["Payments"])
+# Mount Socket.io
+from app.core.socket_manager import sio
+import socketio
+app.mount("/socket.io", socketio.ASGIApp(sio, socketio_path=""))

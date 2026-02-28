@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../data/repositories/contribution_repository.dart';
+import '../../../data/services/contribution_service.dart';
+import '../../../data/models/contribution.dart';
 import 'campaign_investment_details_page.dart';
 
 class PortfolioPage extends StatefulWidget {
@@ -11,7 +12,7 @@ class PortfolioPage extends StatefulWidget {
 }
 
 class _PortfolioPageState extends State<PortfolioPage> {
-  final ContributionRepository _repository = ContributionRepository();
+  final ContributionService _service = ContributionService();
   bool _isLoading = true;
   List<UserContribution> _contributions = [];
   String? _error;
@@ -28,7 +29,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
       _error = null;
     });
     try {
-      final data = await _repository.getMyContributions();
+      final data = await _service.getMyContributions();
       setState(() {
         _contributions = data;
         _isLoading = false;

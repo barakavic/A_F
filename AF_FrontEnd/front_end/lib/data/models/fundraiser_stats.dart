@@ -9,9 +9,23 @@ class FundraiserStats {
 
   factory FundraiserStats.fromJson(Map<String, dynamic> json) {
     return FundraiserStats(
-      totalRaised: (json['total_raised'] as num).toDouble(),
-      activePhasesCount: json['active_phases_count'] as int,
+      totalRaised: _parseDouble(json['total_raised']),
+      activePhasesCount: _parseInt(json['active_phases_count']),
     );
+  }
+
+  static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
+  }
+
+  static int _parseInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
   }
 
   factory FundraiserStats.empty() {

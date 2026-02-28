@@ -30,7 +30,11 @@ class _PhaseReviewPageState extends State<PhaseReviewPage> {
       if (data['milestone_id'] == widget.milestone.milestoneId) {
         if (data.containsKey('completion_percentage') && mounted) {
           setState(() {
-            _completionPercent = (data['completion_percentage'] as num).toDouble() / 100.0;
+            final rawValue = data['completion_percentage'];
+            double percent = 1.0;
+            if (rawValue is num) percent = rawValue.toDouble() / 100.0;
+            else if (rawValue is String) percent = (double.tryParse(rawValue) ?? 100.0) / 100.0;
+            _completionPercent = percent;
           });
         }
       }
@@ -199,9 +203,9 @@ class _PhaseReviewPageState extends State<PhaseReviewPage> {
                   ),
                 Row(
                   children: [
-                    Expanded(child: _buildProofImage('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTCw3C5G0dkQgnt7XH-bjglpq7lBhzQ0uOZ4w&s')),
+                    Expanded(child: _buildProofImage('https://images.unsplash.com/photo-1509391366360-fe5bb58583bb?auto=format&fit=crop&q=80&w=600')),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildProofImage('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFd_dd5_OV72E2FVWIzny8iM9YbjYKDVtoIw&s')),
+                    Expanded(child: _buildProofImage('https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&q=80&w=600')),
                   ],
                 ),
                 
