@@ -79,9 +79,20 @@ class CampaignTimelinePage extends ConsumerWidget {
       children: [
         _statItem("TOTAL BUDGET", "KES ${project.goalAmount.toInt()}"),
         _statItem("PHASES", project.numPhases.toString()),
-        _statItem("STATUS", project.status.toUpperCase(), color: AppColors.primary),
+        _statItem("STATUS", project.status.toUpperCase(), color: _getProjectStatusColor(project.status)),
       ],
     );
+  }
+
+  Color _getProjectStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'draft': return Colors.grey;
+      case 'active': return Colors.blue;
+      case 'funded': return Colors.green;
+      case 'in_phases': return Colors.orange;
+      case 'completed': return Colors.purple;
+      default: return AppColors.primary;
+    }
   }
 
   Widget _statItem(String label, String value, {Color? color}) {
