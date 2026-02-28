@@ -41,6 +41,7 @@ dependencies:
   
   # HTTP & API
   dio: ^5.4.0
+  socket_io_client: ^3.0.0
   
   # Local Storage
   shared_preferences: ^2.2.2

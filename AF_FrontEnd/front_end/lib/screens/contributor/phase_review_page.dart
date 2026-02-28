@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../data/models/pending_milestone.dart';
 import '../../data/services/voting_service.dart';
+import '../../data/services/socket_service.dart';
 
 class PhaseReviewPage extends StatefulWidget {
   final PendingMilestone milestone;
@@ -13,7 +14,34 @@ class PhaseReviewPage extends StatefulWidget {
 
 class _PhaseReviewPageState extends State<PhaseReviewPage> {
   final VotingService _votingService = VotingService();
+  final SocketService _socketService = SocketService();
   bool _isSubmitting = false;
+  double _completionPercent = 1.0; // Standard value for review phase
+
+  @override
+  void initState() {
+    super.initState();
+    _initSocket();
+  }
+
+  void _initSocket() {
+    _socketService.joinCampaign(widget.milestone.campaignId);
+    _socketService.onMilestoneUpdate((data) {
+      if (data['milestone_id'] == widget.milestone.milestoneId) {
+        if (data.containsKey('completion_percentage') && mounted) {
+          setState(() {
+            _completionPercent = (data['completion_percentage'] as num).toDouble() / 100.0;
+          });
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _socketService.leaveCampaign(widget.milestone.campaignId);
+    super.dispose();
+  }
 
   String _formatCurrency(double amount) {
     return NumberFormat.currency(symbol: 'KES ', decimalDigits: 0).format(amount);
@@ -112,14 +140,21 @@ class _PhaseReviewPageState extends State<PhaseReviewPage> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: const LinearProgressIndicator(
-                    value: 1.0, // If it's up for review, we assume work is 100% physically complete
-                    minHeight: 12,
-                    backgroundColor: Color(0xFFEEEEEE),
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
-                  ),
+                TweenAnimationBuilder<double>(
+                  duration: const Duration(milliseconds: 800),
+                  curve: Curves.easeInOutCubic,
+                  tween: Tween<double>(begin: 0, end: _completionPercent),
+                  builder: (context, value, child) {
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: value,
+                        minHeight: 12,
+                        backgroundColor: const Color(0xFFEEEEEE),
+                        valueColor: AlwaysStoppedAnimation<Color>(value >= 1.0 ? Colors.green : Colors.blue),
+                      ),
+                    );
+                  },
                 ),
                 
                 const SizedBox(height: 32),

@@ -11,7 +11,25 @@ from app.models.milestone_evidence import MilestoneEvidence
 from app.services.milestone_workflow_service import MilestoneWorkflowService
 from app.schemas.campaign import MilestoneOut
 
+from app.core.socket_manager import emit_milestone_update
+
 router = APIRouter()
+
+@router.get("/test-broadcast/{campaign_id}/{milestone_id}/{percentage}")
+async def test_broadcast(
+    campaign_id: str,
+    milestone_id: str,
+    percentage: int
+):
+    """
+    Test endpoint to simulate a real-time progress update via Socket.io
+    """
+    data = {
+        "milestone_id": milestone_id,
+        "completion_percentage": percentage
+    }
+    await emit_milestone_update(campaign_id, data)
+    return {"message": "Broadcast sent", "data": data}
 
 # Directory for evidence uploads
 UPLOAD_DIR = "uploads/evidence"

@@ -40,7 +40,10 @@ app.add_middleware(
     allow_methods=settings.allowed_methods_list,
     allow_headers=[settings.ALLOWED_HEADERS] if settings.ALLOWED_HEADERS != "*" else ["*"],
 )
+from app.core.socket_manager import socket_app
 
+# Mount Socket.io app
+app.mount("/socket.io", socket_app)
 
 @app.get("/")
 async def root():

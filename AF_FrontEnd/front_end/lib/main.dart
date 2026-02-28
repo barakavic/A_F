@@ -4,6 +4,7 @@ import 'package:front_end/screens/auth/login_options_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
+import 'data/services/socket_service.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -13,6 +14,7 @@ const supabaseKey = String.fromEnvironment('SUPABASE_KEY');
 Future <void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  SocketService().init();
 
   await Supabase.initialize(
     url: supabaseUrl,
