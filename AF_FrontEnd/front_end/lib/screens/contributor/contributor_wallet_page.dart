@@ -156,17 +156,6 @@ class _ContributorWalletPageState extends State<ContributorWalletPage> {
           ),
           
           const SizedBox(height: 32),
-          
-          // Summary Stats
-          _buildSummarySection(),
-          
-          const SizedBox(height: 16),
-          Center(
-            child: TextButton(
-              onPressed: () {},
-              child: const Text("View all milestone summaries", style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
-            ),
-          ),
         ],
       ),
     );
@@ -188,59 +177,6 @@ class _ContributorWalletPageState extends State<ContributorWalletPage> {
           Text(amount, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         ],
       ),
-    );
-  }
-
-  Widget _buildSummarySection() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildSmallSummary("Ttl Disbursement", "KES 150k"),
-              _buildSmallSummary("Ttl Spend", "KES 142k"),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text("Status: ", style: TextStyle(color: Colors.grey, fontSize: 12)),
-              _buildStatusPill("Underspent", Colors.green),
-              const SizedBox(width: 8),
-              _buildStatusPill("Fully Used", Colors.blue.withOpacity(0.5)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSmallSummary(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
-        const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-      ],
-    );
-  }
-
-  Widget _buildStatusPill(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -348,6 +284,11 @@ class ReviewProofPage extends StatelessWidget {
               ],
             ),
             
+            const SizedBox(height: 32),
+            
+            // Phase Efficiency Summary
+            _buildPhaseEfficiencySummary(),
+            
             const SizedBox(height: 48),
             
             // Decision Buttons
@@ -388,6 +329,46 @@ class ReviewProofPage extends StatelessWidget {
     );
   }
 
+  Widget _buildPhaseEfficiencySummary() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _PhaseSummaryItem(label: "Ttl Disbursement", value: "KES 44,500"),
+              _PhaseSummaryItem(label: "Verified Spend", value: "KES 42,000"),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text("Phase Status: ", style: TextStyle(color: Colors.grey, fontSize: 12)),
+              _buildStatusPill("Within Budget", Colors.green),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusPill(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
+    );
+  }
+
   Widget _buildSectionHeader(String title) {
     return Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey));
   }
@@ -409,6 +390,24 @@ class ReviewProofPage extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: Image.network(url, height: 120, fit: BoxFit.cover),
+    );
+  }
+}
+
+class _PhaseSummaryItem extends StatelessWidget {
+  final String label;
+  final String value;
+  const _PhaseSummaryItem({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
+        const SizedBox(height: 4),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+      ],
     );
   }
 }
