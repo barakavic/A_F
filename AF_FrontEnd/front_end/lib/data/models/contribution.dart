@@ -23,9 +23,16 @@ class UserContribution {
       campaignId: json['campaign_id'],
       campaignTitle: json['campaign_title'],
       campaignStatus: json['campaign_status'],
-      amount: (json['amount'] as num).toDouble(),
+      amount: _parseDouble(json['amount']),
       status: json['status'],
       createdAt: DateTime.parse(json['created_at']),
     );
+  }
+
+  static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
   }
 }

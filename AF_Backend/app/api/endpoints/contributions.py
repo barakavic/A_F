@@ -90,6 +90,8 @@ def get_contributor_stats(
         .filter(Contribution.contributor_id == current_user.account_id, Contribution.status == 'completed')\
         .scalar() or 0
 
+    print(f"[DEBUG] Stats for {current_user.account_id}: Value={total_value}, Count={active_count}")
+
     return {
         "total_portfolio_value": total_value,
         "active_investments_count": active_count

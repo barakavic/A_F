@@ -21,11 +21,18 @@ class WalletLedgerEntry {
     return WalletLedgerEntry(
       id: json['id'],
       campaignTitle: json['campaign_title'],
-      amount: (json['amount'] as num).toDouble(),
+      amount: _parseDouble(json['amount']),
       type: json['type'],
       status: json['status'],
       date: DateTime.parse(json['date']),
     );
+  }
+
+  static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
   }
 }
 
@@ -42,12 +49,19 @@ class ContributorWalletStats {
 
   factory ContributorWalletStats.fromJson(Map<String, dynamic> json) {
     return ContributorWalletStats(
-      availableFunds: (json['available_funds'] as num).toDouble(),
-      investedFunds: (json['invested_funds'] as num).toDouble(),
+      availableFunds: _parseDouble(json['available_funds']),
+      investedFunds: _parseDouble(json['invested_funds']),
       ledger: (json['ledger'] as List)
           .map((e) => WalletLedgerEntry.fromJson(e))
           .toList(),
     );
+  }
+
+  static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
   }
 
   factory ContributorWalletStats.empty() {
