@@ -8,12 +8,22 @@ import '../../../providers/auth_provider.dart';
 import '../campaign_creation/campaign_wizard_page.dart';
 import 'campaign_timeline_page.dart';
 import 'package:intl/intl.dart';
+import '../../../screens/fundraiser/active_projects_page.dart';
+import '../../../screens/fundraiser/fundraiser_wallet_page.dart';
 
-class FundraiserDashboardPage extends ConsumerWidget {
+class FundraiserDashboardPage extends ConsumerStatefulWidget {
   const FundraiserDashboardPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FundraiserDashboardPage> createState() => _FundraiserDashboardPageState();
+}
+
+class _FundraiserDashboardPageState extends ConsumerState<FundraiserDashboardPage> {
+  int _selectedIndex = 0;
+  final GlobalKey<ActiveProjectsPageState> _activeProjectsKey = GlobalKey<ActiveProjectsPageState>();
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFBFBFB),
       appBar: AppBar(
@@ -29,41 +39,101 @@ class FundraiserDashboardPage extends ConsumerWidget {
           const SizedBox(width: 16),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(myProjectsProvider);
-          ref.invalidate(fundraiserStatsProvider);
-        },
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildWelcomeHeader(context),
-              const SizedBox(height: 32),
-              _buildStatsGrid(ref),
-              const SizedBox(height: 40),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text("Your Campaigns", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  TextButton(onPressed: () {}, child: const Text("View All")),
-                ],
-              ),
-              const SizedBox(height: 16),
-              _buildCampaignList(ref),
-            ],
-          ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          _buildSummaryHome(ref),
+          ActiveProjectsPage(key: _activeProjectsKey),
+          const FundraiserWalletPage(),
+        ],
+      ),
+      bottomNavigationBar: _buildBottomNav(),
+      floatingActionButton: _selectedIndex == 0 || _selectedIndex == 1 
+        ? FloatingActionButton.extended(
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const CampaignWizardPage()));
+            },
+            backgroundColor: AppColors.primary,
+            icon: const Icon(Icons.add, color: Colors.white),
+            label: const Text("Create Campaign", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          )
+        : null,
+    );
+  }
+
+  Widget _buildSummaryHome(WidgetRef ref) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(myProjectsProvider);
+        ref.invalidate(fundraiserStatsProvider);
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildWelcomeHeader(context),
+            const SizedBox(height: 32),
+            _buildStatsGrid(ref),
+            const SizedBox(height: 40),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Your Campaigns", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                TextButton(onPressed: () => setState(() => _selectedIndex = 1), child: const Text("View All")),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildCampaignList(ref),
+          ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => const CampaignWizardPage()));
-        },
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text("Create Campaign", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, -5))],
+        border: Border(top: BorderSide(color: Colors.grey.shade100))
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _navIcon(0, Icons.home_rounded, "Home"),
+          _navIcon(1, Icons.business_center_rounded, "Projects"),
+          _navIcon(2, Icons.account_balance_wallet_outlined, "Wallet"),
+        ],
+      ),
+    );
+  }
+
+  Widget _navIcon(int index, IconData icon, String label) {
+    final isSelected = _selectedIndex == index;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedIndex = index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: isSelected ? AppColors.primary : Colors.grey, size: 24),
+            if (isSelected) ...[
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12),
+              ),
+            ]
+          ],
+        ),
       ),
     );
   }
