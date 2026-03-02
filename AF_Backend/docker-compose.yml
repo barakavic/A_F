@@ -100,6 +100,28 @@ services:
     networks:
       - ascent_network
 
+  # Simulation Engine (TUI)
+  simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ascent_fin_simulator
+    stdin_open: true
+    tty: true
+    environment:
+      - PYTHONPATH=/app
+    volumes:
+      - .:/app
+      - ../simulation_engine:/app/simulation_engine
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ascent_network
+    command: python simulation_engine/main.py
+
 volumes:
   postgres_data:
     driver: local
