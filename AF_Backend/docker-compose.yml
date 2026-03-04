@@ -108,8 +108,11 @@ services:
     container_name: ascent_fin_simulator
     stdin_open: true
     tty: true
+    env_file:
+      - ./.env
     environment:
       - PYTHONPATH=/app
+      - DATABASE_URL=postgresql://ascent_user:ascent_password@postgres:5432/ascent_fin_db
     volumes:
       - .:/app
       - ../simulation_engine:/app/simulation_engine
