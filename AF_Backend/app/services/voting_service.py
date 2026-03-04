@@ -34,25 +34,27 @@ class VotingService:
         """
         Submit a vote with digital signature verification.
         """
+        import sys
+        
         # 1. Verify Milestone exists
         milestone = db.query(Milestone).filter(Milestone.milestone_id == milestone_id).first()
         if not milestone:
+            print(f"[VOTING] Milestone {milestone_id} not found", file=sys.stderr, flush=True)
             raise ValueError("Milestone not found")
-            
-        # 2. Verify Contributor is authorized (has a token)
+
+        # 2. Verify Contributor is authorized
         token = db.query(VoteToken).filter(
             VoteToken.campaign_id == milestone.campaign_id,
             VoteToken.contributor_id == contributor_id
         ).first()
-        
+
         if not token:
-            raise ValueError("You are not authorized to vote on this campaign")
-            
+            print(f"[VOTING] Unauthorized: no token for contributor {contributor_id} on campaign {milestone.campaign_id}", file=sys.stderr, flush=True)
+            raise ValueError("Unauthorized to vote on this campaign")
+
         # 3. Get Contributor's Public Key
         profile = db.query(ContributorProfile).filter(ContributorProfile.contributor_id == contributor_id).first()
-        if not profile or not profile.public_key:
-            raise ValueError("Contributor public key not found. Please set up your profile.")
-
+        
         # 4. Verify Digital Signature
         is_valid = verify_vote_signature(
             campaign_id=str(milestone.campaign_id),
@@ -60,11 +62,11 @@ class VotingService:
             vote_value=vote_value,
             nonce=nonce,
             signature=signature,
-            public_key=profile.public_key
+            public_key=profile.public_key if profile else "MissingKey"
         )
         
         if not is_valid:
-            print(f"[VOTING] Invalid signature from {contributor_id} for milestone {milestone_id}")
+            print(f"[VOTING] Invalid signature from {contributor_id}", file=sys.stderr, flush=True)
             raise ValueError("Invalid cryptographic signature. Vote rejected.")
 
         # 5. Check if already voted
@@ -166,19 +168,22 @@ class VotingService:
         votes = db.query(VoteSubmission).filter(VoteSubmission.milestone_id == milestone_id).all()
         
         total_votes = len(votes)
+        import sys
+        
         if total_votes == 0:
-            # If no one voted, it's a rejection by default (no quorum)
             yes_votes = 0
             no_votes = 0
             yes_percentage = 0
         else:
-            # Count 'yes' votes + 'waived' votes
-            yes_votes = sum(1 for v in votes if v.vote_value == 'yes' or v.is_waived is True)
+            # Count 'yes' votes + 'waived' votes (ensure string comparison for Enum)
+            yes_votes = sum(1 for v in votes if str(v.vote_value).lower() == 'yes' or v.is_waived is True)
             no_votes = total_votes - yes_votes
             yes_percentage = (yes_votes / total_votes) * 100
             
         outcome = 'approved' if yes_percentage >= 75 else 'rejected'
         
+        print(f"[VOTING] Tallying Milestone {milestone_id}: YES={yes_votes}, NO={no_votes}, TOTAL={total_votes}, %={yes_percentage:.2f} -> OUTCOME={outcome}", file=sys.stderr, flush=True)
+
         # Create the result record
         result = VoteResult(
             milestone_id=milestone_id,

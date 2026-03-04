@@ -69,11 +69,8 @@ def generate_vote_token(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-from fastapi import Request
-
 @router.post("/submit")
 async def submit_vote(
-    request: Request,
     vote_in: VoteSubmit,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -81,9 +78,6 @@ async def submit_vote(
     """
     Submit a vote.
     """
-    print(f"[VOTING] Headers: {request.headers}")
-    print(f"[VOTING] Submission: {vote_in}")
-    print(f"[VOTING] User: {current_user.email} | ID: {current_user.account_id}")
     if current_user.role != 'contributor':
         raise HTTPException(status_code=403, detail="Only contributors can vote")
         
@@ -147,7 +141,14 @@ def tally_votes(
             # But in a real app, we'd log this or handle it more robustly
             print(f"Fund release failed for milestone {milestone_id}: {str(e)}")
             
-    return result
+    return {
+        "status": "success",
+        "milestone_id": milestone_id,
+        "outcome": result.outcome,
+        "yes_percentage": float(result.yes_percentage),
+        "total_yes": result.total_yes,
+        "total_no": result.total_no
+    }
 @router.get("/pending", response_model=PendingVoteOut)
 def get_pending_votes(
     db: Session = Depends(get_db),

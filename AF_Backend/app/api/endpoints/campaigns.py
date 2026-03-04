@@ -135,10 +135,12 @@ def launch_campaign(
         raise HTTPException(status_code=403, detail="Not authorized to launch this campaign")
 
     try:
-        updated_campaign = CampaignStateService.start_campaign(db, campaign_id)
+        updated_campaign = CampaignStateService.launch_campaign(db, campaign_id)
         return updated_campaign
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
 
 @router.get("/{campaign_id}/timeline", response_model=List[MilestoneOut])
 def get_campaign_timeline(
