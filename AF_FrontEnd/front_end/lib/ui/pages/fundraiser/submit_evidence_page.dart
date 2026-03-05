@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/milestone.dart';
 import '../../../data/repositories/campaign_repository.dart';
@@ -117,11 +118,15 @@ class _SubmitEvidencePageState extends State<SubmitEvidencePage> {
 
   Widget _buildFilePicker() {
     return GestureDetector(
-      onTap: () {
-        // Mocking file selection for now as we don't have file_picker package context
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('File picker triggered (Simulation)')),
-        );
+      onTap: () async {
+        final picker = ImagePicker();
+        final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+        
+        if (pickedFile != null) {
+          setState(() {
+            _selectedFile = File(pickedFile.path);
+          });
+        }
       },
       child: Container(
         width: double.infinity,
@@ -131,16 +136,21 @@ class _SubmitEvidencePageState extends State<SubmitEvidencePage> {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.grey.shade300, style: BorderStyle.none), // Should be dashed in real CSS
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.cloud_upload_outlined, size: 48, color: AppColors.primary.withOpacity(0.5)),
-            const SizedBox(height: 16),
-            const Text("Tap to upload photos or PDF", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-            const SizedBox(height: 4),
-            const Text("Max size: 10MB", style: TextStyle(color: Colors.grey, fontSize: 12)),
-          ],
-        ),
+        child: _selectedFile != null
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.file(_selectedFile!, fit: BoxFit.cover, width: double.infinity, height: double.infinity),
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                   Icon(Icons.cloud_upload_outlined, size: 48, color: AppColors.primary.withOpacity(0.5)),
+                   const SizedBox(height: 16),
+                   const Text("Tap to upload photos or PDF", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                   const SizedBox(height: 4),
+                   const Text("Max size: 10MB", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                ],
+              ),
       ),
     );
   }
