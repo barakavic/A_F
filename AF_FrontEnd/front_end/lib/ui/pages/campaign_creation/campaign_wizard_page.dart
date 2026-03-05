@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart' as legacy_provider;
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../../core/constants/app_colors.dart';
 import '../../../providers/campaign_wizard_provider.dart';
 import '../../../providers/project_provider.dart';
@@ -102,8 +104,14 @@ class _CampaignWizardPageState extends ConsumerState<CampaignWizardPage> {
     ref.read(campaignWizardProvider.notifier).setLoading(true);
 
     try {
-      final success = await ref.read(projectServiceProvider).createProject(project);
-      if (success && mounted) {
+      final campaignId = await ref.read(projectServiceProvider).createProject(project);
+      
+      if (campaignId != null && mounted) {
+        // Upload image if provided
+        if (state.coverImagePath != null) {
+          await ref.read(projectServiceProvider).uploadCoverImage(campaignId, state.coverImagePath!);
+        }
+        
         ref.invalidate(activeProjectsProvider);
         ref.invalidate(myProjectsProvider);
         Navigator.pop(context);
@@ -228,9 +236,58 @@ class _CampaignWizardPageState extends ConsumerState<CampaignWizardPage> {
               maxLines: 6,
               validator: (v) => v!.length < 20 ? "Description is too short" : null,
             ),
+            const SizedBox(height: 24),
+            _buildImagePicker(),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildImagePicker() {
+    final state = ref.watch(campaignWizardProvider);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Cover Image", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () async {
+            final ImagePicker picker = ImagePicker();
+            final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+            if (image != null) {
+              ref.read(campaignWizardProvider.notifier).updateCoverImage(image.path);
+            }
+          },
+          child: Container(
+            height: 150,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: state.coverImagePath != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.file(
+                      File(state.coverImagePath!),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: 150,
+                    ),
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add_photo_alternate_outlined, size: 40, color: Colors.grey.shade400),
+                      const SizedBox(height: 8),
+                      Text("Tap to add a cover photo", style: TextStyle(color: Colors.grey.shade500)),
+                    ],
+                  ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -382,6 +439,20 @@ class _CampaignWizardPageState extends ConsumerState<CampaignWizardPage> {
                 ],
               ),
             ),
+            if (state.coverImagePath != null) ...[
+              const SizedBox(height: 24),
+              const Text("Cover Image Format", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(
+                  File(state.coverImagePath!),
+                  height: 150,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -444,7 +515,7 @@ class _CampaignWizardPageState extends ConsumerState<CampaignWizardPage> {
               margin: const EdgeInsets.symmetric(horizontal: 4),
               height: height,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.2 + (index * 0.1)),
+                color: AppColors.primary.withOpacity((0.2 + (index * 0.1)).clamp(0.1, 1.0)),
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
