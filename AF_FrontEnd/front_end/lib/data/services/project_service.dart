@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'api_service.dart';
 import '../../core/config/api_config.dart';
 import '../models/project.dart';
@@ -36,18 +37,40 @@ class ProjectService {
     }
   }
 
-  // Create a new campaign
-  Future<bool> createProject(Project project) async {
+  // Create a new campaign, returns the campaign ID if successful
+  Future<String?> createProject(Project project) async {
     try {
       final response = await _apiService.post(
         ApiConfig.campaigns,
         data: project.toJson(),
       );
       print('CREATE RESPONSE: ${response.statusCode} | ${response.data}');
-      return response.statusCode == 201 || response.statusCode == 200;
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return response.data['campaign_id']?.toString();
+      }
+      return null;
     } catch (e) {
       print('CREATE ERROR: $e');
       rethrow;
+    }
+  }
+
+  // Upload Cover Image
+  Future<bool> uploadCoverImage(String campaignId, String filePath) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filePath, filename: filePath.split('/').last),
+      });
+
+      final response = await _apiService.postMultipart(
+        '${ApiConfig.campaigns}/$campaignId/cover-image',
+        data: formData,
+      );
+      
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print('COVER UPLOAD ERROR: $e');
+      return false;
     }
   }
 
