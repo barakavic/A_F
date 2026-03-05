@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../data/models/pending_milestone.dart';
 import '../../data/services/voting_service.dart';
 import '../../data/services/socket_service.dart';
+import '../../core/config/api_config.dart';
 
 class PhaseReviewPage extends StatefulWidget {
   final PendingMilestone milestone;
@@ -204,22 +205,42 @@ class _PhaseReviewPageState extends State<PhaseReviewPage> {
                 // Visual Proof
                 _buildSectionHeader("Visual Proof of Work"),
                 const SizedBox(height: 12),
-                if (widget.milestone.evidenceDescription != null)
+                if (widget.milestone.evidenceDescription != null && widget.milestone.evidenceDescription!.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Text(
-                      widget.milestone.evidenceDescription!,
-                      style: const TextStyle(fontSize: 13, color: Colors.black87),
+                        widget.milestone.evidenceDescription!,
+                        style: const TextStyle(fontSize: 13, color: Colors.black87),
                     ),
                   ),
-                Row(
-                  children: [
-                    Expanded(child: _buildProofImage('https://images.unsplash.com/photo-1509391366360-fe5bb58583bb?auto=format&fit=crop&q=80&w=600')),
-                    const SizedBox(width: 12),
-                    Expanded(child: _buildProofImage('https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&q=80&w=600')),
-                  ],
-                ),
-                
+                if (widget.milestone.evidenceImageUrls.isNotEmpty)
+                  SizedBox(
+                    height: 120,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: widget.milestone.evidenceImageUrls.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: _buildProofImage(widget.milestone.evidenceImageUrls[index]),
+                        );
+                      },
+                    ),
+                  )
+                else
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300, style: BorderStyle.none),
+                    ),
+                    child: const Center(
+                      child: Text("No visual evidence provided.", style: TextStyle(color: Colors.grey)),
+                    ),
+                  ),
+
                 const SizedBox(height: 32),
                 
                 // Phase Efficiency Summary
@@ -330,9 +351,12 @@ class _PhaseReviewPageState extends State<PhaseReviewPage> {
   }
 
   Widget _buildProofImage(String url) {
+    if (!url.startsWith('http')) {
+      url = '${ApiConfig.baseUrl}$url';
+    }
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
-      child: Image.network(url, height: 120, fit: BoxFit.cover),
+      child: Image.network(url, height: 120, width: 200, fit: BoxFit.cover),
     );
   }
 }
