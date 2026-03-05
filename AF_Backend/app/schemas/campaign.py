@@ -24,8 +24,20 @@ class MilestoneBase(BaseModel):
     revision_count: int = 0
     max_revisions: int = 1
 
+class MilestoneEvidenceOut(BaseModel):
+    evidence_id: UUID
+    file_path: str
+    file_type: str
+    description: Optional[str] = None
+    is_verified: bool
+    uploaded_at: datetime
+    
+    class Config:
+        from_attributes = True
+
 class MilestoneOut(MilestoneBase):
     milestone_id: UUID
+    evidence: List[MilestoneEvidenceOut] = []
     
     class Config:
         from_attributes = True
@@ -57,6 +69,7 @@ class CampaignOut(BaseModel):
     category_c: Decimal
     num_phases_p: int
     alpha_value: Decimal
+    cover_image_url: Optional[str] = None
     total_contributions: Decimal
     total_released: Decimal
     

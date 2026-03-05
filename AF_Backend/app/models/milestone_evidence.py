@@ -13,6 +13,7 @@ class MilestoneEvidence(Base):
     
     file_path = Column(String(255))  # Relative path to storage
     file_type = Column(String(50))   # 'image/jpeg', 'video/mp4', etc.
+    description = Column(String(500), nullable=True) # Optional caption
     metadata_json = Column(JSON)     # EXIF data, device info, etc.
     is_verified = Column(Boolean, default=False) # Result of automated checks
     

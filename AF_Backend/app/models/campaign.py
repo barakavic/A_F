@@ -19,6 +19,8 @@ class Campaign(Base):
     funding_start_date = Column(DateTime)
     funding_end_date = Column(DateTime)
     
+    cover_image_url = Column(String(255), nullable=True)
+    
     category_c = Column(Numeric(4, 3))
     num_phases_p = Column(Integer)
     alpha_value = Column(Numeric(4, 3))
