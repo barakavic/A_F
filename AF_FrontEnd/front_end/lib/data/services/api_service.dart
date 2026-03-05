@@ -77,6 +77,26 @@ class ApiService {
     }
   }
 
+  // Silent retry for Ngrok cold-start
+  Future<Response> _requestWithRetry(Future<Response> Function() request) async {
+    try {
+      return await request();
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.unknown || e.type == DioExceptionType.connectionError) {
+        _log('Retrying request after connection error: ${e.message}');
+        await Future.delayed(const Duration(milliseconds: 1500));
+        try {
+          return await request();
+        } catch (retryError) {
+          throw _handleError(retryError);
+        }
+      }
+      throw _handleError(e);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // Generic POST method
   Future<Response> post(
     String path, {
@@ -84,17 +104,29 @@ class ApiService {
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {
-    try {
-      final response = await _dio.post(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-      );
-      return response;
-    } catch (e) {
-      throw _handleError(e);
-    }
+    return _requestWithRetry(() => _dio.post(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+    ));
+  }
+
+  // Multipart POST method for file uploads
+  Future<Response> postMultipart(
+    String path, {
+    required dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    Function(int, int)? onSendProgress,
+  }) async {
+    return _requestWithRetry(() => _dio.post(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+      onSendProgress: onSendProgress,
+    ));
   }
 
   // Global Error Handling
