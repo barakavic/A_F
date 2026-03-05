@@ -1,7 +1,10 @@
 from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from sqlalchemy.orm import Session
 from uuid import UUID
+import uuid
+import os
+import shutil
 
 from app.api.dependencies.deps import get_db, get_current_user
 from app.schemas.campaign import CampaignCreate, CampaignOut, CampaignUpdate, MilestoneOut, CampaignProgress, FundraiserStats
@@ -116,6 +119,48 @@ def read_campaign(
     campaign = db.query(Campaign).filter(Campaign.campaign_id == campaign_id).first()
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
+    return campaign
+
+@router.post("/{campaign_id}/cover-image", response_model=CampaignOut)
+async def upload_cover_image(
+    campaign_id: UUID,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Upload a cover image for a campaign.
+    """
+    campaign = db.query(Campaign).filter(Campaign.campaign_id == campaign_id).first()
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    
+    if str(campaign.fundraiser_id) != str(current_user.account_id):
+        raise HTTPException(status_code=403, detail="Not authorized to edit this campaign")
+
+    # Validate file type
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+
+    # Create directory if it doesn't exist
+    upload_dir = "uploads/campaigns"
+    os.makedirs(upload_dir, exist_ok=True)
+
+    # Generate unique filename
+    file_extension = os.path.splitext(file.filename)[1]
+    filename = f"{uuid.uuid4()}{file_extension}"
+    file_path = os.path.join(upload_dir, filename)
+
+    # Save file
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    # Update campaign
+    # We store the relative static path. The frontend can prefix with API URL.
+    campaign.cover_image_url = f"/static/campaigns/{filename}"
+    db.commit()
+    db.refresh(campaign)
+    
     return campaign
 
 @router.post("/{campaign_id}/launch", response_model=CampaignOut)

@@ -57,7 +57,8 @@ class MilestoneWorkflowService:
             milestone_id=milestone.milestone_id,
             file_path=file_path,
             file_type=file_type,
-            metadata_json={"description": description},
+            description=description,
+            metadata_json={},
             uploaded_at=datetime.utcnow()
         )
         db.add(evidence)
