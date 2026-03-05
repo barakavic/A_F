@@ -10,6 +10,7 @@ class Project {
   final double phaseProgress; 
   final String? fundraiserId;
   final int numPhases;
+  final String? coverImageUrl;
 
   Project({
     this.id,
@@ -23,6 +24,7 @@ class Project {
     this.phaseProgress = 0.0,
     this.fundraiserId,
     this.numPhases = 0,
+    this.coverImageUrl,
   });
 
   factory Project.fromJson(Map<String, dynamic> json) {
@@ -51,6 +53,7 @@ class Project {
       phaseProgress: 0.0, 
       fundraiserId: json['fundraiser_id']?.toString(),
       numPhases: parseInt(json['num_phases_p']),
+      coverImageUrl: json['cover_image_url']?.toString(),
     );
   }
 
