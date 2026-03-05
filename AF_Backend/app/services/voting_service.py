@@ -168,7 +168,6 @@ class VotingService:
         votes = db.query(VoteSubmission).filter(VoteSubmission.milestone_id == milestone_id).all()
         
         total_votes = len(votes)
-        import sys
         
         if total_votes == 0:
             yes_votes = 0
@@ -182,8 +181,6 @@ class VotingService:
             
         outcome = 'approved' if yes_percentage >= 75 else 'rejected'
         
-        print(f"[VOTING] Tallying Milestone {milestone_id}: YES={yes_votes}, NO={no_votes}, TOTAL={total_votes}, %={yes_percentage:.2f} -> OUTCOME={outcome}", file=sys.stderr, flush=True)
-
         # Create the result record
         result = VoteResult(
             milestone_id=milestone_id,
