@@ -7,6 +7,7 @@ class PendingMilestone {
   final DateTime votingEndDate;
   final double releaseAmount;
   final String? evidenceDescription;
+  final List<String> evidenceImageUrls;
 
   PendingMilestone({
     required this.milestoneId,
@@ -17,6 +18,7 @@ class PendingMilestone {
     required this.votingEndDate,
     required this.releaseAmount,
     this.evidenceDescription,
+    this.evidenceImageUrls = const [],
   });
 
   factory PendingMilestone.fromJson(Map<String, dynamic> json) {
@@ -29,7 +31,14 @@ class PendingMilestone {
       votingEndDate: DateTime.parse(json['voting_end_date']),
       releaseAmount: _parseDouble(json['release_amount']),
       evidenceDescription: json['evidence_description'],
+      evidenceImageUrls: _parseListString(json['evidence_image_urls']),
     );
+  }
+
+  static List<String> _parseListString(dynamic value) {
+    if (value == null) return [];
+    if (value is List) return value.map((v) => v.toString()).toList();
+    return [];
   }
 
   static double _parseDouble(dynamic value) {
