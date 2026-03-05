@@ -10,6 +10,7 @@ class CampaignWizardState {
   final double? riskFactor;
   final int? phaseCount;
   final List<dynamic>? milestones;
+  final String? coverImagePath;
   final int currentStep;
   final bool isLoading;
 
@@ -22,6 +23,7 @@ class CampaignWizardState {
     this.riskFactor,
     this.phaseCount,
     this.milestones,
+    this.coverImagePath,
     this.currentStep = 0,
     this.isLoading = false,
   });
@@ -35,6 +37,7 @@ class CampaignWizardState {
     double? riskFactor,
     int? phaseCount,
     List<dynamic>? milestones,
+    String? coverImagePath,
     int? currentStep,
     bool? isLoading,
   }) {
@@ -47,6 +50,7 @@ class CampaignWizardState {
       riskFactor: riskFactor ?? this.riskFactor,
       phaseCount: phaseCount ?? this.phaseCount,
       milestones: milestones ?? this.milestones,
+      coverImagePath: coverImagePath ?? this.coverImagePath,
       currentStep: currentStep ?? this.currentStep,
       isLoading: isLoading ?? this.isLoading,
     );
@@ -112,6 +116,10 @@ class CampaignWizardNotifier extends Notifier<CampaignWizardState> {
 
   void updateCategory(String category) {
     state = state.copyWith(category: category);
+  }
+
+  void updateCoverImage(String path) {
+    state = state.copyWith(coverImagePath: path);
   }
 
   void nextStep() {
