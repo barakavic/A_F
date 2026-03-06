@@ -272,7 +272,7 @@ class _ProjectDiscoveryDetailState extends State<ProjectDiscoveryDetail> {
                         ),
                       ),
                       
-                      const SizedBox(height: 100), // Space for sticky button
+                      const SizedBox(height: 160), // Increased buffer to clear sticky button bar
                     ],
                   ),
                 ),
