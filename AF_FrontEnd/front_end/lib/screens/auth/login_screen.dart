@@ -75,21 +75,19 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Consumer<AuthProvider>(
-            builder: (context, authProvider, child) {
-              return Form(
+          padding: const EdgeInsets.only(left: 24.0, right: 24.0, top: 40.0, bottom: 140.0),
+          child: Column(
+            children: [
+              Text(
+                'LOGIN',
+                style: AppTextStyles.h2.copyWith(fontWeight: FontWeight.bold, fontSize: 28),
+              ),
+              const SizedBox(height: 40),
+              
+              Form(
                 key: _formKey,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 20),
-                    Text(
-                      'LOGIN',
-                      style: AppTextStyles.h2.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 40),
-
                     // Email / Phone / Username Field
                     _buildInputLabel('Email, Phone or Username:'),
                     const SizedBox(height: 8),
@@ -99,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       validator: (value) => Validators.validateRequired(value, 'Email or Phone Number'), 
                       decoration: _buildInputDecoration(),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
                     // Password Field
                     _buildInputLabel('Password:'),
@@ -114,94 +112,96 @@ class _LoginScreenState extends State<LoginScreen> {
                         onToggleVisibility: () => setState(() => _obscurePassword = !_obscurePassword),
                       ),
                     ),
-                    const SizedBox(height: 40),
-
-                    // Login Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: authProvider.isLoading ? null : _handleLogin,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary, // Brand Orange
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: authProvider.isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                              )
-                            : const Text(
-                                'Login',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Forgot Password
-                    TextButton(
-                      onPressed: () {
-                        // TODO: Implement Forgot Password
-                      },
-                      child: const Text(
-                        'Forgot Password?',
-                        style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontStyle: FontStyle.italic,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // OR Divider
-                    const Text(
-                      'OR',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Sign Up Link
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'Dont have an account? ',
-                          style: TextStyle(color: AppColors.textPrimary),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const SignupScreen()),
-                            );
-                          },
-                          child: const Text(
-                            'Sign Up',
-                            style: TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
-              );
-            },
+              ),
+              
+              const SizedBox(height: 40),
+
+              // Login Button
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: Provider.of<AuthProvider>(context).isLoading ? null : _handleLogin,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary, 
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Provider.of<AuthProvider>(context).isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Text(
+                          'Login',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Forgot Password
+              TextButton(
+                onPressed: () {
+                  // TODO: Implement Forgot Password
+                },
+                child: const Text(
+                  'Forgot Password?',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontStyle: FontStyle.italic,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              
+              const Text(
+                'OR',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Dont have an account? ',
+                    style: TextStyle(color: AppColors.textPrimary),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const SignupScreen()),
+                      );
+                    },
+                    child: const Text(
+                      'Sign Up',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
