@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../data/models/project.dart';
+import '../../core/config/api_config.dart';
 import '../../data/repositories/contribution_repository.dart';
 import '../../data/repositories/payment_repository.dart';
 
@@ -109,10 +110,26 @@ class _ProjectDiscoveryDetailState extends State<ProjectDiscoveryDetail> {
                   background: Stack(
                     fit: StackFit.expand,
                     children: [
-                      Image.network(
-                        'https://images.unsplash.com/photo-1497435334941-8c899ee9e8e2?auto=format&fit=crop&w=800&q=80',
-                        fit: BoxFit.cover,
-                      ),
+                      (() {
+                        String? coverUrl = project.coverImageUrl;
+                        if (coverUrl != null && coverUrl.startsWith('/static/')) {
+                          coverUrl = '${ApiConfig.rootUrl}$coverUrl';
+                        }
+                        
+                        return coverUrl != null 
+                          ? Image.network(
+                              coverUrl, 
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => Container(
+                                color: Colors.grey.shade200,
+                                child: Icon(Icons.image_not_supported_outlined, size: 50, color: Colors.grey.shade400),
+                              ),
+                            )
+                          : Container(
+                              color: AppColors.primary.withOpacity(0.1),
+                              child: Icon(Icons.rocket_launch_outlined, size: 60, color: AppColors.primary.withOpacity(0.4)),
+                            );
+                      })(),
                       const DecoratedBox(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
@@ -232,9 +249,10 @@ class _ProjectDiscoveryDetailState extends State<ProjectDiscoveryDetail> {
                         ),
                         child: Row(
                           children: [
-                            const CircleAvatar(
+                            CircleAvatar(
                               radius: 24,
-                              backgroundImage: NetworkImage('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=100&q=80'),
+                              backgroundColor: Colors.grey.shade200,
+                              child: Icon(Icons.person_outline, color: Colors.grey.shade400, size: 24),
                             ),
                             const SizedBox(width: 16),
                             Expanded(

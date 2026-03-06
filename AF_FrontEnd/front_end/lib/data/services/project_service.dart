@@ -41,7 +41,7 @@ class ProjectService {
   Future<String?> createProject(Project project) async {
     try {
       final response = await _apiService.post(
-        ApiConfig.campaigns,
+        '${ApiConfig.campaigns}/',
         data: project.toJson(),
       );
       print('CREATE RESPONSE: ${response.statusCode} | ${response.data}');
@@ -62,8 +62,11 @@ class ProjectService {
         'file': await MultipartFile.fromFile(filePath, filename: filePath.split('/').last),
       });
 
+      final String uploadUrl = '${ApiConfig.campaigns}/$campaignId/cover-image'.replaceAll('//', '/').replaceFirst('https:/', 'https://').replaceFirst('http:/', 'http://');
+      print('UPLOADING TO: $uploadUrl');
+
       final response = await _apiService.postMultipart(
-        '${ApiConfig.campaigns}/$campaignId/cover-image',
+        uploadUrl,
         data: formData,
       );
       

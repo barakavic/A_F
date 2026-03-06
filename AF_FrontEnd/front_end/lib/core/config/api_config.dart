@@ -4,6 +4,9 @@ class ApiConfig {
   ApiConfig._();
 
   static String get baseUrl => dotenv.env['API_BASE_URL'] ?? (throw Exception('API_BASE_URL not found in .env'));
+  
+  // Base URL for static assets (strips /api/v1)
+  static String get rootUrl => baseUrl.replaceAll('/api/v1', '');
 
   // Auth Endpoints
   static String get login => '$baseUrl/auth/login';
@@ -12,7 +15,7 @@ class ApiConfig {
   static String get registerFundraiser => '$baseUrl/auth/register/fundraiser';
 
   // Campaign Endpoints
-  static String get campaigns => '$baseUrl/campaigns/'; // Trailing slash for POST /
+  static String get campaigns => '$baseUrl/campaigns'; // No trailing slash anymore
   static String get myCampaigns => '$baseUrl/campaigns/my-campaigns';
   static String get fundraiserStats => '$baseUrl/campaigns/fundraiser/stats';
   static String launchCampaign(String id) => '$baseUrl/campaigns/$id/launch';

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../data/models/project.dart';
+import '../../core/config/api_config.dart';
 import '../../providers/project_provider.dart';
 import 'project_management_detail.dart';
 import '../../ui/pages/campaign_creation/campaign_wizard_page.dart';
-import 'widgets/create_campaign_form.dart';
 import '../../ui/pages/fundraiser/campaign_timeline_page.dart';
 
 class ActiveProjectsPage extends ConsumerStatefulWidget {
@@ -126,6 +126,25 @@ class ActiveProjectsPageState extends ConsumerState<ActiveProjectsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (project.coverImageUrl != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  project.coverImageUrl!.startsWith('/static/') 
+                    ? '${ApiConfig.rootUrl}${project.coverImageUrl}'
+                    : project.coverImageUrl!,
+                  height: 120,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    height: 120,
+                    width: double.infinity,
+                    color: Colors.grey.shade50,
+                    child: Icon(Icons.broken_image_outlined, size: 32, color: Colors.grey.shade300),
+                  ),
+                ),
+              ),
+            if (project.coverImageUrl != null) const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

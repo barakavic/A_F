@@ -26,8 +26,8 @@ class MilestoneBase(BaseModel):
 
 class MilestoneEvidenceOut(BaseModel):
     evidence_id: UUID
-    file_path: str
-    file_type: str
+    file_path: Optional[str] = None
+    file_type: Optional[str] = None
     description: Optional[str] = None
     is_verified: bool
     uploaded_at: datetime

@@ -141,6 +141,6 @@ class CampaignWizardNotifier extends Notifier<CampaignWizardState> {
   }
 }
 
-final campaignWizardProvider = NotifierProvider<CampaignWizardNotifier, CampaignWizardState>(() {
+final campaignWizardProvider = NotifierProvider.autoDispose<CampaignWizardNotifier, CampaignWizardState>(() {
   return CampaignWizardNotifier();
 });

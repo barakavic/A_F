@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../providers/project_provider.dart';
 import '../../data/models/project.dart';
+import '../../core/config/api_config.dart';
 import 'project_discovery_detail.dart';
 
 class DiscoverProjectsPage extends ConsumerWidget {
@@ -50,8 +51,11 @@ class DiscoverProjectsPage extends ConsumerWidget {
   }
 
   Widget _buildDiscoveryCard(BuildContext context, Project project) {
-    // Default image if none provided
-    const String img = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTCw3C5G0dkQgnt7XH-bjglpq7lBhzQ0uOZ4w&s';
+    String? coverUrl = project.coverImageUrl;
+    if (coverUrl != null && coverUrl.startsWith('/static/')) {
+      coverUrl = '${ApiConfig.rootUrl}$coverUrl';
+    }
+
     final double progress = project.raisedAmount / (project.goalAmount > 0 ? project.goalAmount : 1.0);
     return GestureDetector(
       onTap: () => Navigator.push(
@@ -69,7 +73,25 @@ class DiscoverProjectsPage extends ConsumerWidget {
           children: [
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              child: Image.network(img, height: 160, width: double.infinity, fit: BoxFit.cover),
+              child: coverUrl != null 
+                  ? Image.network(
+                      coverUrl, 
+                      height: 160, 
+                      width: double.infinity, 
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        height: 160,
+                        width: double.infinity,
+                        color: Colors.grey.shade100,
+                        child: Icon(Icons.image_not_supported_outlined, size: 40, color: Colors.grey.shade400),
+                      ),
+                    )
+                  : Container(
+                      height: 160,
+                      width: double.infinity,
+                      color: Colors.grey.shade100,
+                      child: Icon(Icons.rocket_launch_outlined, size: 40, color: AppColors.primary.withOpacity(0.5)),
+                    ),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
