@@ -2,4 +2,5 @@
 # Test Data and Scripts
 *.sql
 test_data/
+uploads/
 
