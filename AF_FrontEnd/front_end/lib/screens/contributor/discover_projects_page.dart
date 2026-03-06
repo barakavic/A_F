@@ -99,7 +99,7 @@ class DiscoverProjectsPage extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(project.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text("by ${project.fundraiserId ?? 'Verified Fundraiser'}", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                  Text("by ${project.fundraiserName ?? 'Verified Fundraiser'}", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
                   const SizedBox(height: 16),
                   LinearProgressIndicator(
                     value: progress > 1.0 ? 1.0 : progress, 

@@ -60,6 +60,7 @@ class CampaignUpdate(BaseModel):
 class CampaignOut(BaseModel):
     campaign_id: UUID
     fundraiser_id: UUID
+    fundraiser_name: str
     title: str
     description: str
     funding_goal_f: Decimal
@@ -70,6 +71,9 @@ class CampaignOut(BaseModel):
     num_phases_p: int
     alpha_value: Decimal
     cover_image_url: Optional[str] = None
+    backers_count: int
+    days_left: int
+    category_name: str
     total_contributions: Decimal
     total_released: Decimal
     

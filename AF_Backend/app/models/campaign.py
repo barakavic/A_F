@@ -62,3 +62,36 @@ class Campaign(Base):
     escrow_account = relationship("EscrowAccount", back_populates="campaign", uselist=False)
     vote_tokens = relationship("VoteToken", back_populates="campaign")
 
+    @property
+    def fundraiser_name(self) -> str:
+        if self.fundraiser:
+            return self.fundraiser.company_name or "Unknown Fundraiser"
+        return "Unknown Fundraiser"
+
+    @property
+    def backers_count(self) -> int:
+        from app.models.transaction import Contribution
+        from sqlalchemy import select, func
+        from app.db.session import SessionLocal
+        
+        db = SessionLocal()
+        try:
+            count = db.query(func.count(func.distinct(Contribution.contributor_id))).\
+                filter(Contribution.campaign_id == self.campaign_id, Contribution.status == 'completed').scalar()
+            return count or 0
+        finally:
+            db.close()
+
+    @property
+    def days_left(self) -> int:
+        if not self.funding_end_date:
+            return 0
+        delta = self.funding_end_date - datetime.utcnow()
+        return max(0, delta.days)
+
+    @property
+    def category_name(self) -> str:
+        if self.fundraiser and self.fundraiser.industry_l1:
+            return self.fundraiser.industry_l1.l1_name
+        return "General"
+

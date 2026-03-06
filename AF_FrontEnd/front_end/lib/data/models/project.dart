@@ -9,6 +9,10 @@ class Project {
   final double? alphaValue;
   final double phaseProgress; 
   final String? fundraiserId;
+  final String? fundraiserName;
+  final int backersCount;
+  final int daysLeft;
+  final String category;
   final int numPhases;
   final String? coverImageUrl;
 
@@ -23,6 +27,10 @@ class Project {
     this.alphaValue,
     this.phaseProgress = 0.0,
     this.fundraiserId,
+    this.fundraiserName,
+    this.backersCount = 0,
+    this.daysLeft = 0,
+    this.category = 'General',
     this.numPhases = 0,
     this.coverImageUrl,
   });
@@ -44,15 +52,19 @@ class Project {
 
     return Project(
       id: json['campaign_id']?.toString(),
-      title: json['title'] ?? 'Untitled',
-      description: json['description'] ?? '',
-      goalAmount: parseDouble(json['funding_goal_f']),
+      title: (json['title'] ?? json['campaign_title'] ?? 'Untitled').toString(),
+      description: (json['description'] ?? 'No description provided').toString(),
+      goalAmount: parseDouble(json['funding_goal_f'] ?? json['funding_goal']),
       raisedAmount: parseDouble(json['total_contributions']),
-      status: json['status'] ?? 'draft',
-      durationMonths: parseInt(json['duration_d'], defaultValue: 12),
+      status: (json['status'] ?? 'active').toString(),
+      durationMonths: parseInt(json['duration_d'] ?? json['duration_months'], defaultValue: 12),
       phaseProgress: 0.0, 
       fundraiserId: json['fundraiser_id']?.toString(),
-      numPhases: parseInt(json['num_phases_p']),
+      fundraiserName: json['fundraiser_name']?.toString() ?? 'Verified Fundraiser',
+      backersCount: parseInt(json['backers_count']),
+      daysLeft: parseInt(json['days_left']),
+      category: (json['category_name'] ?? json['category'] ?? 'General').toString(),
+      numPhases: parseInt(json['num_phases_p'] ?? json['num_phases']),
       coverImageUrl: json['cover_image_url']?.toString(),
     );
   }

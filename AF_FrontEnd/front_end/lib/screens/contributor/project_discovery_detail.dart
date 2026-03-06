@@ -152,9 +152,9 @@ class _ProjectDiscoveryDetailState extends State<ProjectDiscoveryDetail> {
                                 color: Colors.orangeAccent,
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: const Text(
-                                "Technology",
-                                style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                              child: Text(
+                                project.category,
+                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -167,7 +167,7 @@ class _ProjectDiscoveryDetailState extends State<ProjectDiscoveryDetail> {
                               ),
                             ),
                             Text(
-                              "by ${project.fundraiserId ?? 'Verified Fundraiser'}",
+                              "by ${project.fundraiserName ?? 'Verified Fundraiser'}",
                               style: const TextStyle(color: Colors.white70, fontSize: 14),
                             ),
                           ],
@@ -188,8 +188,8 @@ class _ProjectDiscoveryDetailState extends State<ProjectDiscoveryDetail> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildStatBadge(Icons.timer_outlined, "12 Days Left", Colors.blue),
-                          _buildStatBadge(Icons.people_outline, "124 Backers", Colors.green),
+                          _buildStatBadge(Icons.timer_outlined, "${project.daysLeft} Days Left", Colors.blue),
+                          _buildStatBadge(Icons.people_outline, "${project.backersCount} Backers", Colors.green),
                         ],
                       ),
                       const SizedBox(height: 24),
@@ -259,7 +259,7 @@ class _ProjectDiscoveryDetailState extends State<ProjectDiscoveryDetail> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(project.fundraiserId ?? 'Verified Fundraiser', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  Text(project.fundraiserName ?? 'Verified Fundraiser', style: const TextStyle(fontWeight: FontWeight.bold)),
                                   const Text("Verified Organization", style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.w600)),
                                 ],
                               ),
