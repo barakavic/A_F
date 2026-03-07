@@ -75,6 +75,7 @@ class Project {
       'description': description,
       'funding_goal': goalAmount,
       'duration_months': durationMonths,
+      'category': category,
       'campaign_type': 'donation',
       'num_phases': numPhases,
     };

@@ -47,6 +47,7 @@ class CampaignBase(BaseModel):
     description: str
     funding_goal_f: Decimal = Field(..., alias="funding_goal")
     duration_d: int = Field(..., alias="duration_months")
+    category: str = "General"
     campaign_type_ct: str = Field("donation", alias="campaign_type")
 
 class CampaignCreate(CampaignBase):

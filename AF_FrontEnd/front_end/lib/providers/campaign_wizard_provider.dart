@@ -94,6 +94,7 @@ class CampaignWizardState {
       description: description,
       goalAmount: goalAmount,
       durationMonths: durationMonths,
+      category: category,
       fundraiserId: fundraiserId,
       numPhases: estimatedPhaseCount, // Temporary during creation
     );

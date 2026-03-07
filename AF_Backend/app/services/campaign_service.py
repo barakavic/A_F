@@ -16,6 +16,7 @@ class CampaignService:
         description: str,
         funding_goal: float,
         duration_months: int,
+        category: str = 'General',
         campaign_type: str = 'donation'
     ) -> Campaign:
         """
@@ -47,6 +48,7 @@ class CampaignService:
             funding_goal_f=funding_goal,
             duration_d=duration_months,
             campaign_type_ct=campaign_type,
+            category=category,
             category_c=risk_c,
             num_phases_p=phase_count,
             alpha_value=alpha,

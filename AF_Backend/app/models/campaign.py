@@ -21,6 +21,7 @@ class Campaign(Base):
     
     cover_image_url = Column(String(255), nullable=True)
     
+    category = Column(String(100), nullable=True)
     category_c = Column(Numeric(4, 3))
     num_phases_p = Column(Integer)
     alpha_value = Column(Numeric(4, 3))
@@ -91,6 +92,8 @@ class Campaign(Base):
 
     @property
     def category_name(self) -> str:
+        if self.category:
+            return self.category
         if self.fundraiser and self.fundraiser.industry_l1:
             return self.fundraiser.industry_l1.l1_name
         return "General"

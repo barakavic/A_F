@@ -38,6 +38,7 @@ def create_campaign(
             description=campaign_in.description,
             funding_goal=float(campaign_in.funding_goal_f),
             duration_months=campaign_in.duration_d,
+            category=campaign_in.category,
             campaign_type=campaign_in.campaign_type_ct
         )
         return campaign
