@@ -5,11 +5,11 @@ allprojects {
     }
 }
 
-val newBuildDir = rootProject.layout.buildDirectory.dir("../../build").get()
-rootProject.layout.buildDirectory.value(newBuildDir)
+val relocatedBuildDir = project.layout.buildDirectory.dir("../../build").get()
+project.layout.buildDirectory.value(relocatedBuildDir)
 
 subprojects {
-    val newSubprojectBuildDir = newBuildDir.dir(project.name)
+    val newSubprojectBuildDir = relocatedBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
 
@@ -18,5 +18,5 @@ subprojects {
 }
 
 tasks.register<Delete>("clean") {
-    delete(rootProject.layout.buildDirectory)
+    delete(project.layout.buildDirectory)
 }
