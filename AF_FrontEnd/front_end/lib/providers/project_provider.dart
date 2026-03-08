@@ -19,3 +19,8 @@ final fundraiserStatsProvider = FutureProvider.autoDispose<FundraiserStats>((ref
   final service = ref.watch(projectServiceProvider);
   return await service.getFundraiserStats();
 });
+
+final projectDetailProvider = FutureProvider.family.autoDispose<Project?, String>((ref, id) async {
+  final service = ref.watch(projectServiceProvider);
+  return await service.getProjectById(id);
+});

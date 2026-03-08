@@ -5,7 +5,10 @@ import '../../core/config/api_config.dart';
 import '../../data/repositories/contribution_repository.dart';
 import '../../data/repositories/payment_repository.dart';
 
-class ProjectDiscoveryDetail extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/project_provider.dart';
+
+class ProjectDiscoveryDetail extends ConsumerStatefulWidget {
   final Project project;
 
   const ProjectDiscoveryDetail({
@@ -14,10 +17,10 @@ class ProjectDiscoveryDetail extends StatefulWidget {
   });
 
   @override
-  State<ProjectDiscoveryDetail> createState() => _ProjectDiscoveryDetailState();
+  ConsumerState<ProjectDiscoveryDetail> createState() => _ProjectDiscoveryDetailState();
 }
 
-class _ProjectDiscoveryDetailState extends State<ProjectDiscoveryDetail> {
+class _ProjectDiscoveryDetailState extends ConsumerState<ProjectDiscoveryDetail> {
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController(text: "254");
   final PaymentRepository _paymentRepository = PaymentRepository();
@@ -77,6 +80,8 @@ class _ProjectDiscoveryDetailState extends State<ProjectDiscoveryDetail> {
             ],
           ),
         );
+        ref.invalidate(projectDetailProvider(widget.project.id!));
+        ref.invalidate(activeProjectsProvider);
       }
     } catch (e) {
       if (mounted) {
@@ -89,14 +94,19 @@ class _ProjectDiscoveryDetailState extends State<ProjectDiscoveryDetail> {
 
   @override
   Widget build(BuildContext context) {
-    // Note: widget.project is used now
-    final project = widget.project;
+    // Watch for live project updates, fall back to the initial project if loading/missing
+    final liveProjectAsync = ref.watch(projectDetailProvider(widget.project.id!));
+    final project = liveProjectAsync.value ?? widget.project;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          CustomScrollView(
-            slivers: [
+          RefreshIndicator(
+            onRefresh: () => ref.refresh(projectDetailProvider(widget.project.id!).future),
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
               // Premium Header with Image
               SliverAppBar(
                 expandedHeight: 250,
@@ -278,6 +288,7 @@ class _ProjectDiscoveryDetailState extends State<ProjectDiscoveryDetail> {
                 ),
               ),
             ],
+          ),
           ),
 
           // Sticky Bottom Action

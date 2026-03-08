@@ -22,6 +22,20 @@ class ProjectService {
     }
   }
 
+  // Fetch a single project by ID (For Pull-to-Refresh on details page)
+  Future<Project?> getProjectById(String id) async {
+    try {
+      final response = await _apiService.get('${ApiConfig.campaigns}/$id');
+      if (response.statusCode == 200) {
+        return Project.fromJson(response.data);
+      }
+      return null;
+    } catch (e) {
+      print('FETCH SINGLE ERROR: $e');
+      return null;
+    }
+  }
+
   // Fetch only my projects (Fundraiser Dashboard)
   Future<List<Project>> getMyProjects() async {
     try {
