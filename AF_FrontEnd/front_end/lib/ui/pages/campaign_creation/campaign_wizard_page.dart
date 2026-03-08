@@ -114,6 +114,8 @@ class _CampaignWizardPageState extends ConsumerState<CampaignWizardPage> {
         if (state.coverImagePath != null) {
           await ref.read(projectServiceProvider).uploadCoverImage(campaignId, state.coverImagePath!);
         }
+
+        await ref.read(projectServiceProvider).launchProject(campaignId);
         
         ref.invalidate(activeProjectsProvider);
         ref.invalidate(myProjectsProvider);

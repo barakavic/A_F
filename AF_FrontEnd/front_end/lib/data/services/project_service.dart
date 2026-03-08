@@ -69,6 +69,19 @@ class ProjectService {
     }
   }
 
+  // Launch a draft campaign
+  Future<bool> launchProject(String campaignId) async {
+    try {
+      final response = await _apiService.post(
+        '${ApiConfig.campaigns}/$campaignId/launch',
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print('LAUNCH ERROR: $e');
+      return false;
+    }
+  }
+
   // Upload Cover Image
   Future<bool> uploadCoverImage(String campaignId, String filePath) async {
     try {

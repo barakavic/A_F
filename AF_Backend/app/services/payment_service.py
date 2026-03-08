@@ -63,9 +63,9 @@ class PaymentService:
         payload = {
             "BusinessShortCode": settings.MPESA_SHORTCODE,
             "Password": password,
-            "Timestamp": timestamp,
+            "Timestamp": timestamp,"Amount": 1, # TEST MODE: Only charge 1 KES regardless of actual contribution
             "TransactionType": "CustomerPayBillOnline",
-            "Amount": 1, # TEST MODE: Only charge 1 KES regardless of actual contribution
+            
             "PartyA": phone_number,
             "PartyB": settings.MPESA_SHORTCODE,
             "PhoneNumber": phone_number,
@@ -158,7 +158,6 @@ class PaymentService:
                     "amount": amount
                 }
             else:
-                # Failure - Log and clean up
                 print(f"Payment failed: {result_desc}")
                 delete_stk_session(checkout_request_id)
                 
@@ -167,6 +166,5 @@ class PaymentService:
                     "message": f"Payment failed: {result_desc}"
                 }
         except Exception as e:
-            # Clean up even on error
             delete_stk_session(checkout_request_id)
             raise e
