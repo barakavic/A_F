@@ -64,6 +64,7 @@ class _ProjectDiscoveryDetailState
 
         _amountController.clear();
         if (mounted) {
+          Navigator.of(context).popUntil((route) => route is PageRoute);
           _showPaymentConfirmedDialog();
         }
       }
@@ -73,6 +74,7 @@ class _ProjectDiscoveryDetailState
   void _showPaymentConfirmedDialog() {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Text("Payment Confirmed!"),
         content: const Text(
@@ -80,7 +82,7 @@ class _ProjectDiscoveryDetailState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Okay"),
+            child: const Text("OK"),
           ),
         ],
       ),
