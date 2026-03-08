@@ -43,8 +43,8 @@ class PaymentService:
         """
         # 1. Validation
         campaign = db.query(Campaign).filter(Campaign.campaign_id == campaign_id).first()
-        if not campaign or campaign.status != 'active':
-            raise ValueError("Campaign not found or not active")
+        if not campaign or campaign.status not in ['active', 'draft']:
+            raise ValueError("Campaign not found or not active/draft")
         
         # 2. Get Access Token
         access_token = PaymentService._get_mpesa_access_token()

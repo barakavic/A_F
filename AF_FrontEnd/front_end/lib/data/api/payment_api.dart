@@ -1,8 +1,8 @@
-import 'api_client.dart';
+import '../services/api_service.dart';
 import '../../core/config/api_config.dart';
 
 class PaymentApi {
-  final ApiClient _apiClient = ApiClient();
+  final ApiService _apiService = ApiService();
 
   /// Initiate an M-Pesa STK Push
   Future<Map<String, dynamic>> initiateStkPush({
@@ -19,7 +19,7 @@ class PaymentApi {
         data['phone_number'] = phoneNumber;
       }
 
-      final response = await _apiClient.post(
+      final response = await _apiService.post(
         ApiConfig.stkPush,
         data: data,
       );

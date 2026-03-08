@@ -55,7 +55,7 @@ class Project {
       title: (json['title'] ?? json['campaign_title'] ?? 'Untitled').toString(),
       description: (json['description'] ?? 'No description provided').toString(),
       goalAmount: parseDouble(json['funding_goal_f'] ?? json['funding_goal']),
-      raisedAmount: parseDouble(json['total_contributions']),
+      raisedAmount: parseDouble(json['total_contributions'] ?? json['total_raised']),
       status: (json['status'] ?? 'active').toString(),
       durationMonths: parseInt(json['duration_d'] ?? json['duration_months'], defaultValue: 12),
       phaseProgress: 0.0, 

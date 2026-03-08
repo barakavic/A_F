@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     MPESA_CONSUMER_SECRET: str = ""
     MPESA_PASSKEY: str = ""
     MPESA_SHORTCODE: str = "174379"  # Default sandbox shortcode
+    MPESA_CALLBACK_URL: str = ""
+    MPESA_TIMEOUT_URL: str = ""
+    MPESA_INITIATOR_NAME: str = ""
+    MPESA_INITIATOR_PASSWORD: str = ""
     
     class Config:
         case_sensitive = True
