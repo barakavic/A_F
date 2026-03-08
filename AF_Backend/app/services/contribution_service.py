@@ -27,7 +27,7 @@ class ContributionService:
         6. Generate Vote Token if not exists
         """
         # 1. Verify Campaign
-        campaign = db.query(Campaign).filter(Campaign.campaign_id == campaign_id).first()
+        campaign = db.query(Campaign).filter(Campaign.campaign_id == campaign_id).with_for_update().first()
         if not campaign:
             raise ValueError("Campaign not found")
         
@@ -36,6 +36,12 @@ class ContributionService:
         allowed_statuses = ['active', 'draft']
         if campaign.status not in allowed_statuses:
              raise ValueError(f"Campaign is not active. Current status: {campaign.status}")
+
+        # Check for over-funding
+        from decimal import Decimal
+        remaining = Decimal(str(campaign.funding_goal_f)) - (campaign.total_contributions or Decimal('0'))
+        if Decimal(str(amount)) > remaining:
+            raise ValueError(f"Transaction failed. This project only requires KES {remaining} to be fully funded.")
 
         # 2. Create Contribution
         contribution = Contribution(
@@ -48,8 +54,14 @@ class ContributionService:
         db.flush() # Get contribution_id
 
         # 3. Update Campaign
-        from decimal import Decimal
         campaign.total_contributions = (campaign.total_contributions or Decimal('0')) + Decimal(str(amount))
+        
+        # Auto-launch into 'funded' state if goal reached
+        if campaign.total_contributions >= campaign.funding_goal_f:
+            from app.services.campaign_state_service import CampaignStateService
+            # We don't commit here yet, let the main transaction finish
+            campaign.status = 'funded'
+            campaign.funded_at = datetime.utcnow()
         
         # 4. Update Escrow & 5. Transaction Ledger (Using TransactionService for atomic updates)
         escrow = db.query(EscrowAccount).filter(EscrowAccount.campaign_id == campaign_id).first()

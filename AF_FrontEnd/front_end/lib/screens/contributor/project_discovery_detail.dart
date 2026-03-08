@@ -26,6 +26,27 @@ class _ProjectDiscoveryDetailState extends ConsumerState<ProjectDiscoveryDetail>
   final TextEditingController _phoneController = TextEditingController(text: "254");
   final PaymentRepository _paymentRepository = PaymentRepository();
   bool _isSubmitting = false;
+  String? _amountError;
+
+  void _validateAmount(String value, double goal, double raised) {
+    if (value.isEmpty) {
+      setState(() => _amountError = null);
+      return;
+    }
+    final amount = double.tryParse(value);
+    final remaining = goal - raised;
+    setState(() {
+      if (amount == null) {
+        _amountError = "Invalid amount";
+      } else if (amount > remaining) {
+        _amountError = "Max is KES ${remaining.toInt()}";
+      } else if (amount <= 0) {
+        _amountError = "Must be > 0";
+      } else {
+        _amountError = null;
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -373,12 +394,15 @@ class _ProjectDiscoveryDetailState extends ConsumerState<ProjectDiscoveryDetail>
                             child: Center(
                               child: TextField(
                                 controller: _amountController,
-                                decoration: const InputDecoration(
-                                  hintText: "Amount",
-                                  border: InputBorder.none,
-                                  prefixText: "KES ",
-                                  isDense: true,
-                                ),
+                                  decoration: InputDecoration(
+                                    hintText: "Amount",
+                                    border: InputBorder.none,
+                                    prefixText: "KES ",
+                                    isDense: true,
+                                    errorText: _amountError,
+                                    errorStyle: const TextStyle(fontSize: 10, height: 0.5),
+                                  ),
+                                  onChanged: (val) => _validateAmount(val, project.goalAmount, project.raisedAmount),
                                 keyboardType: TextInputType.number,
                                 style: const TextStyle(fontSize: 14),
                               ),
@@ -398,7 +422,7 @@ class _ProjectDiscoveryDetailState extends ConsumerState<ProjectDiscoveryDetail>
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                           elevation: 0,
                         ),
-                        onPressed: _isSubmitting ? null : _handleFunding,
+                        onPressed: (_isSubmitting || _amountError != null || _amountController.text.isEmpty) ? null : _handleFunding,
                         child: _isSubmitting 
                           ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                           : const Text("Fund Project", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
