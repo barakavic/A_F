@@ -106,7 +106,7 @@ def read_campaigns(
     """
     Retrieve campaigns.
     """
-    campaigns = db.query(Campaign).offset(skip).limit(limit).all()
+    campaigns = db.query(Campaign).filter(Campaign.status == 'active').offset(skip).limit(limit).all()
     return campaigns
 
 @router.get("/{campaign_id}", response_model=CampaignOut)
