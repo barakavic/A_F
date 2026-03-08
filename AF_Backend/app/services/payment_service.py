@@ -153,7 +153,9 @@ class PaymentService:
                 
                 return {
                     "status": "success",
-                    "message": "Payment processed successfully"
+                    "message": "Payment processed successfully",
+                    "campaign_id": str(campaign_id),
+                    "amount": amount
                 }
             else:
                 # Failure - Log and clean up

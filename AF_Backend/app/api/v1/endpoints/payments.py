@@ -7,6 +7,7 @@ from app.api.dependencies.deps import get_current_user
 from app.models.user import User
 import uuid
 from typing import Optional
+from app.core.socket_manager import sio
 
 router = APIRouter()
 
@@ -66,7 +67,7 @@ def initiate_stk_push(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Payment initiation failed: {str(e)}")
 
 @router.post("/callback", status_code=status.HTTP_200_OK)
-def mpesa_callback(
+async def mpesa_callback(
     callback_data: CallbackRequest,
     db: Session = Depends(get_db)
 ):
@@ -95,6 +96,16 @@ def mpesa_callback(
             result_code=result_code,
             result_desc=result_desc
         )
+        
+        # If successful, emit to websocket so the frontend auto-refreshes
+        if result.get("status") == "success":
+            campaign_id = result.get("campaign_id")
+            amount = result.get("amount")
+            if campaign_id:
+                # Emit specifically to users viewing this campaign
+                await sio.emit("payment_received", {"campaign_id": campaign_id, "amount": amount}, room=campaign_id)
+                # Global broadcast just in case
+                await sio.emit("payment_received", {"campaign_id": campaign_id, "amount": amount})
         
         return {"ResultCode": 0, "ResultDesc": "Callback processed successfully"}
     

@@ -7,6 +7,7 @@ import '../../data/repositories/payment_repository.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/project_provider.dart';
+import '../../data/services/socket_service.dart';
 
 class ProjectDiscoveryDetail extends ConsumerStatefulWidget {
   final Project project;
@@ -27,7 +28,39 @@ class _ProjectDiscoveryDetailState extends ConsumerState<ProjectDiscoveryDetail>
   bool _isSubmitting = false;
 
   @override
+  void initState() {
+    super.initState();
+    SocketService().joinCampaign(widget.project.id!);
+    
+    SocketService().socket.on('payment_received', (data) {
+      if (data != null && data['campaign_id'] == widget.project.id) {
+        ref.invalidate(projectDetailProvider(widget.project.id!));
+        ref.invalidate(activeProjectsProvider);
+        
+        _amountController.clear();
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text("Payment Confirmed!"),
+              content: const Text("Thank you for supporting this project! Your contribution has been added."),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Okay"),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    });
+  }
+
+  @override
   void dispose() {
+    SocketService().socket.off('payment_received');
+    SocketService().leaveCampaign(widget.project.id!);
     _amountController.dispose();
     super.dispose();
   }
@@ -67,21 +100,18 @@ class _ProjectDiscoveryDetailState extends ConsumerState<ProjectDiscoveryDetail>
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text("Request Sent! ⏳"),
+            title: const Text("Request Sent!"),
             content: Text(result['message'] ?? "Please enter your M-Pesa PIN on your phone to complete the contribution."),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.pop(context); // Close dialog
-                  _amountController.clear();
                 }, 
                 child: const Text("OK"),
               ),
             ],
           ),
         );
-        ref.invalidate(projectDetailProvider(widget.project.id!));
-        ref.invalidate(activeProjectsProvider);
       }
     } catch (e) {
       if (mounted) {
