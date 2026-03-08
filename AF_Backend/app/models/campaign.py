@@ -85,10 +85,24 @@ class Campaign(Base):
 
     @property
     def days_left(self) -> int:
-        if not self.funding_end_date:
-            return 0
-        delta = self.funding_end_date - datetime.utcnow()
-        return max(0, delta.days)
+        from datetime import timedelta
+        
+        # 1. Calculate Seed Phase Duration D_seed = 0.1 * D (in months) * 30 days
+        d_seed_months = max(0.1 * float(self.duration_d), 0.1) if self.duration_d else 0.1
+        d_seed_days = int(d_seed_months * 30)
+        
+        # 2. If Draft, show total seed days available
+        if self.status == 'draft' or not self.funding_start_date:
+            return d_seed_days
+            
+        # 3. If Active (Seed Phase running)
+        if self.status in ['active', 'pending_review']:
+            seed_end_date = self.funding_start_date + timedelta(days=d_seed_days)
+            delta = seed_end_date - datetime.utcnow()
+            return max(0, delta.days)
+            
+        # 4. If funded or beyond, seed phase is over.
+        return 0
 
     @property
     def category_name(self) -> str:
