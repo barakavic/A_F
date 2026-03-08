@@ -4,7 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../../providers/project_provider.dart';
 import '../../data/models/project.dart';
 import '../../core/config/api_config.dart';
-import 'project_discovery_detail.dart';
+import 'project_discovery_details/project_discovery_detail_page.dart';
 
 class DiscoverProjectsPage extends ConsumerWidget {
   const DiscoverProjectsPage({super.key});
