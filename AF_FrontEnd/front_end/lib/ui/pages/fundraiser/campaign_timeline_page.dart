@@ -37,7 +37,7 @@ class CampaignTimelinePage extends ConsumerWidget {
           SliverToBoxAdapter(child: _buildProjectHeader()),
           timelineAsync.when(
             data: (milestones) => SliverPadding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) => _buildTimelineItem(context, milestones[index], index == milestones.length - 1),
@@ -50,6 +50,43 @@ class CampaignTimelinePage extends ConsumerWidget {
           ),
         ],
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: project.status.toLowerCase() == 'in_phases' 
+        ? Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            width: double.infinity,
+            child: FloatingActionButton.extended(
+              onPressed: () async {
+                final repo = CampaignRepository();
+                try {
+                  final result = await repo.simulateAdvance(project.id!);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(result['message'] ?? "Phase Advanced!"),
+                        backgroundColor: result['status'] == 'success' ? Colors.green : Colors.orange,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                    ref.invalidate(campaignTimelineProvider(project.id!));
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Simulation Error: $e"), backgroundColor: Colors.red),
+                    );
+                  }
+                }
+              },
+              backgroundColor: Colors.black,
+              label: const Text(
+                "SIMULATE PROGRESS (SKIP WAIT)",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1),
+              ),
+              icon: const Icon(Icons.flash_on, color: Colors.amber),
+            ),
+          )
+        : null,
     );
   }
 
@@ -107,8 +144,10 @@ class CampaignTimelinePage extends ConsumerWidget {
   }
 
   Widget _buildTimelineItem(BuildContext context, Milestone milestone, bool isLast) {
-    bool isActive = milestone.status == 'active' || milestone.status == 'evidence_submitted';
+    bool isActive = milestone.status == 'active' || milestone.status == 'voting_open' || milestone.status == 'evidence_submitted' || milestone.status == 'revision_submitted';
     bool isCompleted = milestone.status == 'released' || milestone.status == 'approved';
+
+    bool canSubmit = milestone.status == 'active' || milestone.status == 'rejected';
 
     return IntrinsicHeight(
       child: Row(
@@ -166,7 +205,7 @@ class CampaignTimelinePage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   _buildMilestoneDetails(milestone),
-                  if (isActive) ...[
+                  if (canSubmit) ...[
                     const SizedBox(height: 20),
                     SizedBox(
                       width: double.infinity,
@@ -217,8 +256,8 @@ class CampaignTimelinePage extends ConsumerWidget {
   Widget _statusSmallBadge(String status) {
     Color color = Colors.grey;
     if (status == 'active') color = Colors.blue;
-    if (status == 'released') color = Colors.green;
-    if (status == 'evidence_submitted') color = Colors.orange;
+    if (status == 'released' || status == 'approved') color = Colors.green;
+    if (status == 'evidence_submitted' || status == 'voting_open') color = Colors.orange;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

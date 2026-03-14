@@ -1,7 +1,7 @@
 class PendingMilestone {
   final String milestoneId;
   final int milestoneNumber;
-  final String description;
+  final String? description;
   final String campaignTitle;
   final String campaignId;
   final DateTime votingEndDate;
@@ -12,7 +12,7 @@ class PendingMilestone {
   PendingMilestone({
     required this.milestoneId,
     required this.milestoneNumber,
-    required this.description,
+    this.description,
     required this.campaignTitle,
     required this.campaignId,
     required this.votingEndDate,
@@ -25,7 +25,7 @@ class PendingMilestone {
     return PendingMilestone(
       milestoneId: json['milestone_id'],
       milestoneNumber: _parseInt(json['milestone_number']),
-      description: json['description'],
+      description: json['description'] ?? "",
       campaignTitle: json['campaign_title'],
       campaignId: json['campaign_id'],
       votingEndDate: DateTime.parse(json['voting_end_date']),

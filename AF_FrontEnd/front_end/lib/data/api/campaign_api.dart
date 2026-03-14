@@ -87,4 +87,14 @@ class CampaignApi {
       rethrow;
     }
   }
+
+  /// Simulation: Advance the phase by skipping the voting wait period
+  Future<Map<String, dynamic>> simulateAdvance(String campaignId) async {
+    try {
+      final response = await _apiClient.post(ApiConfig.simulateAdvance(campaignId));
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

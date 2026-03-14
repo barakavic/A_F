@@ -39,6 +39,9 @@ class ApiConfig {
   // Payments
   static String get stkPush => '$baseUrl/payments/stk-push';
 
+  // Simulation (Tester Tool)
+  static String simulateAdvance(String id) => '$baseUrl/simulation/$id/advance';
+
   // Network Settings
   static const Duration connectTimeout = Duration(seconds: 60);
   static const Duration receiveTimeout = Duration(seconds: 60);

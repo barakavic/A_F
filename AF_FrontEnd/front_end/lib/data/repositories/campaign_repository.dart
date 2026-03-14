@@ -54,4 +54,8 @@ class CampaignRepository {
   Future<Map<String, dynamic>> getMilestoneVotingStatus(String milestoneId) async {
     return await _milestoneApi.getVoteStatus(milestoneId);
   }
+
+  Future<Map<String, dynamic>> simulateAdvance(String campaignId) async {
+    return await _campaignApi.simulateAdvance(campaignId);
+  }
 }
