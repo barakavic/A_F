@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../core/constants/app_colors.dart';
 import 'discover_projects_page.dart';
 import 'contributor_wallet_page.dart';
@@ -92,6 +94,24 @@ class _ContributorDashboardState extends State<ContributorDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Consumer<AuthProvider>(
+            builder: (context, auth, _) => Padding(
+              padding: const EdgeInsets.only(bottom: 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Welcome back,',
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                  ),
+                  Text(
+                    auth.userDisplayName ?? "Contributor",
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+          ),
           _buildPortfolioCard(),
           const SizedBox(height: 32),
           const Text(

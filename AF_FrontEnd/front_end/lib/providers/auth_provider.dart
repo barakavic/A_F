@@ -9,6 +9,7 @@ class AuthProvider extends ChangeNotifier {
   String? _userRole;
   String? _userDisplayName;
   String? _userId;
+  String? _userEmail;
   String? _errorMessage;
 
   // Getters
@@ -17,6 +18,7 @@ class AuthProvider extends ChangeNotifier {
   String? get userRole => _userRole;
   String? get userDisplayName => _userDisplayName;
   String? get userId => _userId;
+  String? get userEmail => _userEmail;
   String? get errorMessage => _errorMessage;
 
   // Check if user is already logged in on app start
@@ -31,11 +33,13 @@ class AuthProvider extends ChangeNotifier {
         _userRole = await _authService.getUserRole();
         _userDisplayName = await _authService.getUserDisplayName();
         _userId = await _authService.getUserId();
+        _userEmail = await _authService.getUserEmail();
       } else {
         _isAuthenticated = false;
         _userRole = null;
         _userDisplayName = null;
         _userId = null;
+        _userEmail = null;
       }
     } catch (e) {
       _isAuthenticated = false;
@@ -56,6 +60,7 @@ class AuthProvider extends ChangeNotifier {
       _userRole = data['role'];
       _userDisplayName = await _authService.getUserDisplayName();
       _userId = await _authService.getUserId();
+      _userEmail = await _authService.getUserEmail(); // Use server-verified email
       _setLoading(false);
       return true;
     } catch (e) {
@@ -99,6 +104,7 @@ class AuthProvider extends ChangeNotifier {
     _userRole = null;
     _userDisplayName = null;
     _userId = null;
+    _userEmail = null;
     notifyListeners();
   }
 

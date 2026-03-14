@@ -12,6 +12,7 @@ class AuthService {
   static const String _userRoleKey = 'user_role';
   static const String _userNameKey = 'user_full_name';
   static const String _userIdKey = 'user_id';
+  static const String _userEmailKey = 'user_email';
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
@@ -31,11 +32,17 @@ class AuthService {
         final role = response.data['role'] ?? 'fundraiser';
         final userId = response.data['account_id'];
 
-        await _saveAuthData(token, role, userId);
+        // MUST save token first so getProfile() uses the new authentication
+        await _saveAuthData(token, role, userId, email);
         
-        // Fetch full profile to get the name
+        // Fetch full profile to get the name and canonical email
         try {
           final profile = await getProfile();
+          final canonicalEmail = profile['email'];
+          if (canonicalEmail != null) {
+            await _storage.write(key: _userEmailKey, value: canonicalEmail);
+          }
+          
           String? name;
           if (role == 'fundraiser') {
             name = profile['fundraiser_profile']?['company_name'];
@@ -86,11 +93,14 @@ class AuthService {
     }
   }
 
-  Future<void> _saveAuthData(String token, String role, [String? userId]) async {
+  Future<void> _saveAuthData(String token, String role, [String? userId, String? email]) async {
     await _storage.write(key: _tokenKey, value: token);
     await _storage.write(key: _userRoleKey, value: role);
     if (userId != null) {
       await _storage.write(key: _userIdKey, value: userId);
+    }
+    if (email != null) {
+      await _storage.write(key: _userEmailKey, value: email);
     }
   }
 
@@ -110,6 +120,10 @@ class AuthService {
     return await _storage.read(key: _userIdKey);
   }
 
+  Future<String?> getUserEmail() async {
+    return await _storage.read(key: _userEmailKey);
+  }
+
   Future<Map<String, dynamic>> getProfile() async {
     try {
       final response = await _apiService.get(ApiConfig.me);
@@ -122,6 +136,8 @@ class AuthService {
   Future<void> logout() async {
     await _storage.delete(key: _tokenKey);
     await _storage.delete(key: _userRoleKey);
+    await _storage.delete(key: _userEmailKey);
+    await _storage.delete(key: _userNameKey);
   }
 
   Future<bool> isLoggedIn() async {
