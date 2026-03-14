@@ -64,7 +64,7 @@ async def health_check():
 
 
 # API Routes
-from app.api.endpoints import auth, campaigns, votes, contributions, milestones
+from app.api.endpoints import auth, campaigns, votes, contributions, milestones, simulation
 from app.api.v1.endpoints import payments
 
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"])
@@ -73,6 +73,7 @@ app.include_router(milestones.router, prefix=f"{settings.API_V1_STR}/milestones"
 app.include_router(votes.router, prefix=f"{settings.API_V1_STR}/votes", tags=["Votes"])
 app.include_router(contributions.router, prefix=f"{settings.API_V1_STR}/contributions", tags=["Contributions"])
 app.include_router(payments.router, prefix=f"{settings.API_V1_STR}/payments", tags=["Payments"])
+app.include_router(simulation.router, prefix=f"{settings.API_V1_STR}/simulation", tags=["Simulation"])
 # Wrap with Socket.io last
 from app.core.socket_manager import sio
 import socketio
