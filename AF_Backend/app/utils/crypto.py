@@ -42,6 +42,7 @@ def verify_vote_signature(
     Verify that a vote signature is valid and matches the expected public key.
     """
     message = get_vote_message(campaign_id, milestone_id, vote_value, nonce)
+    print(f"[CRYPTO] Verifying message: '{message}'", flush=True)
     signable_message = encode_defunct(text=message)
     
     try:

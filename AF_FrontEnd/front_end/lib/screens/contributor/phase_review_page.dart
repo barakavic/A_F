@@ -4,6 +4,9 @@ import '../../data/models/pending_milestone.dart';
 import '../../data/services/voting_service.dart';
 import '../../data/services/socket_service.dart';
 import '../../core/config/api_config.dart';
+import '../../core/utils/crypto_utils.dart';
+import '../../providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 class PhaseReviewPage extends StatefulWidget {
   final PendingMilestone milestone;
@@ -60,11 +63,33 @@ class _PhaseReviewPageState extends State<PhaseReviewPage> {
     // For now, we simulate the signature and nonce as we haven't implemented digital signing in the UI yet
     // In a real ASCENT implementation, this would involve a cryptographic signature from the user's private key
     try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final email = authProvider.userEmail;
+      if (email == null) {
+        throw Exception("Identity Error: Logged in user has no associated email for signing.");
+      }
+      print("[VOTING_DEBUG] Using email for signature: $email");
+      
+      // 1. Generate Deterministic Key for current user
+      final privateKey = CryptoUtils.getDeterministicKey(email);
+      
+      // 2. Standardized Nonce
+      final nonce = DateTime.now().millisecondsSinceEpoch.toString();
+      
+      // 3. Real Cryptographic Signature
+      final signature = CryptoUtils.signVote(
+        privateKey: privateKey,
+        campaignId: widget.milestone.campaignId,
+        milestoneId: widget.milestone.milestoneId,
+        voteValue: voteValue,
+        nonce: nonce,
+      );
+
       final success = await _votingService.submitVote(
         milestoneId: widget.milestone.milestoneId,
         voteValue: voteValue,
-        signature: "0x_MOCKED_SIGNATURE_FOR_DEMO",
-        nonce: DateTime.now().millisecondsSinceEpoch.toString(),
+        signature: signature,
+        nonce: nonce,
       );
 
       if (mounted) {
@@ -118,7 +143,7 @@ class _PhaseReviewPageState extends State<PhaseReviewPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text("Phase #${widget.milestone.milestoneNumber}", style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-                          Text(widget.milestone.description, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          Text(widget.milestone.description ?? "", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -187,7 +212,7 @@ class _PhaseReviewPageState extends State<PhaseReviewPage> {
                   ),
                   child: Column(
                     children: [
-                      _buildBudgetItem(widget.milestone.description, _formatCurrency(widget.milestone.releaseAmount)),
+                       _buildBudgetItem(widget.milestone.description ?? "", _formatCurrency(widget.milestone.releaseAmount)),
                       const Divider(),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
