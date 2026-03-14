@@ -19,7 +19,7 @@ router = APIRouter()
 class MilestonePending(BaseModel):
     milestone_id: UUID
     milestone_number: int
-    description: str
+    description: Optional[str] = None
     campaign_title: str
     campaign_id: UUID
     voting_end_date: datetime
@@ -184,14 +184,12 @@ def get_pending_votes(
     for m in pending_milestones:
         if m.milestone_id not in already_voted_ids:
             # Get latest evidence description
-            latest_evidence = db.query(MilestoneEvidence).filter(
-                MilestoneEvidence.milestone_id == m.milestone_id
-            ).order_by(MilestoneEvidence.uploaded_at.desc()).first()
-            
-            # Extract description from metadata_json if it exists
             evidence_desc = None
-            if latest_evidence and latest_evidence.metadata_json:
-                evidence_desc = latest_evidence.metadata_json.get("description")
+            if m.evidence:
+                # Sort evidence by uploaded_at in memory or just get the latest from relationship
+                # For high-fidelity testing, we'll get the latest one
+                latest_evidence = sorted(m.evidence, key=lambda x: x.uploaded_at, reverse=True)[0]
+                evidence_desc = latest_evidence.description
 
             result.append({
                 "milestone_id": m.milestone_id,

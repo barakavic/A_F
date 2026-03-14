@@ -66,7 +66,10 @@ class VotingService:
         )
         
         if not is_valid:
-            print(f"[VOTING] Invalid signature from {contributor_id}", file=sys.stderr, flush=True)
+            from app.utils.crypto import get_vote_message, encode_defunct, Account
+            msg = get_vote_message(str(milestone.campaign_id), str(milestone_id), vote_value, nonce)
+            recovered = Account.recover_message(encode_defunct(text=msg), signature=signature)
+            print(f"[VOTING] Invalid signature from {contributor_id}. Expected: {profile.public_key if profile else 'N/A'}, Recovered: {recovered}", file=sys.stderr, flush=True)
             raise ValueError("Invalid cryptographic signature. Vote rejected.")
 
         # 5. Check if already voted

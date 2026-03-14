@@ -72,6 +72,12 @@ class MilestoneWorkflowService:
             
         milestone.evidence_submitted_at = datetime.utcnow()
         
+        # AUTOMATION: Automatically start voting window upon submission
+        from datetime import timedelta
+        milestone.status = 'voting_open'
+        milestone.voting_start_date = datetime.utcnow()
+        milestone.voting_end_date = datetime.utcnow() + timedelta(days=7)
+        
         db.commit()
         db.refresh(milestone)
         return milestone
