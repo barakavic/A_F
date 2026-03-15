@@ -21,10 +21,8 @@ def login_access_token(
     """
     OAuth2 compatible token login, supports Email, Username or Phone (for contributors)
     """
-    # 1. First try strictly by email in the main account table
     user = db.query(User).filter(User.email == form_data.username).first()
     
-    # 2. If not found, try by Username (uname) or Phone in ContributorProfile
     if not user:
         user = db.query(User)\
             .join(ContributorProfile, User.account_id == ContributorProfile.contributor_id)\
@@ -45,7 +43,13 @@ def login_access_token(
     access_token = security.create_access_token(
         subject=user.account_id, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer", "role": user.role, "account_id": user.account_id}
+    return {
+        "access_token": access_token, 
+        "token_type": "bearer", 
+        "role": user.role, 
+        "account_id": user.account_id,
+        "email": user.email
+    }
 
 @router.post("/register/contributor", response_model=UserSchema)
 def register_contributor(
@@ -56,8 +60,6 @@ def register_contributor(
     Register a new contributor with profile. Checks for duplicates.
     """
     def normalize_phone(phone: str) -> str:
-        # Standardize to local 9-digit format (7XXXXXXXX) for the check
-        # Removes +, 254, and leading 0
         p = phone.strip().replace("+", "")
         if p.startswith("254"):
             p = p[3:]
@@ -65,20 +67,16 @@ def register_contributor(
             p = p[1:]
         return p
 
-    # Duplicate Checks
     if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(status_code=400, detail="User with this email already exists")
     
     if db.query(ContributorProfile).filter(ContributorProfile.uname == data.uname).first():
         raise HTTPException(status_code=400, detail="Username is already taken")
     
-    # Check if a normalized version of this phone exists
     norm_phone = normalize_phone(data.phone_number)
-    # Search for any phone that ends with the normalized 9 digits
     if db.query(ContributorProfile).filter(ContributorProfile.phone_number.like(f"%{norm_phone}")).first():
         raise HTTPException(status_code=400, detail="Phone number is already registered")
     
-    # Create account
     user = User(
         email=data.email,
         password_hash=security.get_password_hash(data.password),
@@ -86,9 +84,8 @@ def register_contributor(
         is_active=True
     )
     db.add(user)
-    db.flush()  # Get account_id
+    db.flush()
     
-    # Create contributor profile
     profile = ContributorProfile(
         contributor_id=user.account_id,
         uname=data.uname,
@@ -108,11 +105,9 @@ def register_fundraiser(
     """
     Register a new fundraiser with profile.
     """
-    # Check if user exists
     if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(status_code=400, detail="User with this email already exists")
     
-    # Create account
     user = User(
         email=data.email,
         password_hash=security.get_password_hash(data.password),
@@ -120,9 +115,8 @@ def register_fundraiser(
         is_active=True
     )
     db.add(user)
-    db.flush()  # Get account_id
+    db.flush()
     
-    # Create fundraiser profile
     profile = FundraiserProfile(
         fundraiser_id=user.account_id,
         company_name=data.company_name,

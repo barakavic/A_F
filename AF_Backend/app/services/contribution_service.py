@@ -31,11 +31,10 @@ class ContributionService:
         if not campaign:
             raise ValueError("Campaign not found")
         
-        # In a real app, we'd check if status is 'active' or 'funded'
-        # For now, let's allow contributions to 'active' or 'draft' (for testing)
-        allowed_statuses = ['active', 'draft']
+        # Allow contributions to continue even if project just hit the goal or started phases (late M-Pesa callbacks)
+        allowed_statuses = ['active', 'draft', 'funded', 'in_phases']
         if campaign.status not in allowed_statuses:
-             raise ValueError(f"Campaign is not active. Current status: {campaign.status}")
+             raise ValueError(f"Campaign is not accepting funds. Current status: {campaign.status}")
 
         # Check for over-funding
         from decimal import Decimal
@@ -56,11 +55,11 @@ class ContributionService:
         # 3. Update Campaign
         campaign.total_contributions = (campaign.total_contributions or Decimal('0')) + Decimal(str(amount))
         
-        # Auto-launch into 'funded' state if goal reached
-        if campaign.total_contributions >= campaign.funding_goal_f:
+        # Auto-launch into 'in_phases' state if goal reached
+        if campaign.total_contributions >= campaign.funding_goal_f and campaign.status != 'in_phases':
             from app.services.campaign_state_service import CampaignStateService
-            # We don't commit here yet, let the main transaction finish
-            campaign.status = 'funded'
+            # Move directly to phases
+            CampaignStateService.start_phases(db, campaign_id)
             campaign.funded_at = datetime.utcnow()
         
         # 4. Update Escrow & 5. Transaction Ledger (Using TransactionService for atomic updates)

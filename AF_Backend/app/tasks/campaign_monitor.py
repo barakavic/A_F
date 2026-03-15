@@ -48,12 +48,8 @@ def check_voting_deadlines(db: Session):
             logger.info(f"Voting period ended for milestone {milestone.milestone_id}. Tallying votes.")
             MilestoneWorkflowService.tally_votes(db, milestone.milestone_id)
             
-            # If approved, we also trigger fund release
+            # Re-fetch state
             db.refresh(milestone)
-            if milestone.status == 'approved':
-                FinancialWorkflowService.release_milestone_funds(db, milestone.milestone_id)
-            
-            # If it was the last milestone, complete the campaign
             campaign = milestone.campaign
             if milestone.status == 'approved' and milestone.milestone_number == campaign.num_phases_p:
                 CampaignStateService.complete_campaign(db, campaign.campaign_id)

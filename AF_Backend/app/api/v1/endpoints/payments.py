@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 from app.db.session import get_db
@@ -68,7 +68,7 @@ def initiate_stk_push(
 
 @router.post("/callback", status_code=status.HTTP_200_OK)
 async def mpesa_callback(
-    callback_data: CallbackRequest,
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """
@@ -80,14 +80,18 @@ async def mpesa_callback(
     In production, we'll add IP whitelisting to only accept requests from Safaricom's servers.
     """
     try:
-        # Parse the callback payload
-        stk_callback = callback_data.Body.get("stkCallback", {})
+        # Parse the callback payload flexibly
+        data = await request.json()
+        print(f"[DEBUG] MPESA Callback Payload: {data}")
+        
+        stk_callback = data.get("Body", {}).get("stkCallback", {})
         checkout_request_id = stk_callback.get("CheckoutRequestID")
         result_code = stk_callback.get("ResultCode", -1)
         result_desc = stk_callback.get("ResultDesc", "Unknown error")
         
         if not checkout_request_id:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing CheckoutRequestID")
+            print("[ERROR] MPESA Callback: Missing CheckoutRequestID")
+            return {"ResultCode": 1, "ResultDesc": "Missing CheckoutRequestID"}
         
         # Process the callback
         result = PaymentService.process_stk_callback(
@@ -112,5 +116,5 @@ async def mpesa_callback(
     except Exception as e:
         # Always return 200 to Safaricom to prevent retries
         # Log the error internally
-        print(f"Callback processing error: {e}")
+        import traceback; traceback.print_exc()
         return {"ResultCode": 1, "ResultDesc": f"Processing failed: {str(e)}"}
