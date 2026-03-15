@@ -4,7 +4,6 @@ import '../../core/constants/app_colors.dart';
 import '../../data/models/project.dart';
 import '../../core/config/api_config.dart';
 import '../../providers/project_provider.dart';
-import 'project_management_detail.dart';
 import '../../ui/pages/campaign_creation/campaign_wizard_page.dart';
 import '../../ui/pages/fundraiser/campaign_timeline_page.dart';
 
