@@ -9,7 +9,7 @@ class CampaignStateService:
     VALID_TRANSITIONS = {
         'draft': ['pending_review', 'active'],
         'pending_review': ['active', 'draft'],
-        'active': ['funded', 'failed'],
+        'active': ['funded', 'in_phases', 'failed'],
         'funded': ['in_phases', 'failed'],
         'in_phases': ['completed', 'failed'],
         'completed': [], # Final state

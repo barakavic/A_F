@@ -107,51 +107,11 @@ class MilestoneWorkflowService:
     def tally_votes(db: Session, milestone_id: UUID) -> Milestone:
         """
         Calculates the result of a voting window.
-        Enforces 75% quorum rule (YES + Waived / Total).
+        Delegates to VotingService for core tallying logic.
         """
+        from app.services.voting_service import VotingService
+        VotingService.tally_votes(db, milestone_id)
+        
         milestone = db.query(Milestone).filter(Milestone.milestone_id == milestone_id).first()
-        if not milestone:
-            raise ValueError("Milestone not found")
-        
-        # Get all votes
-        votes = db.query(VoteSubmission).filter(VoteSubmission.milestone_id == milestone_id).all()
-        
-        # In a real scenario, total_contributors would come from the campaign/vote_token table
-        # For simplicity, we compare YES vs NO in the submissions
-        total_votes = len(votes)
-        if total_votes == 0:
-            # Business rule: If NO ONE votes, but they were active, 
-            # we might need a default or treat as failure. 
-            # Let's assume rejection if goal not met.
-            yes_votes = 0
-            no_votes = 0
-            yes_pct = 0
-        else:
-            yes_votes = len([v for v in votes if v.vote_value == 'yes' or v.is_waived])
-            no_votes = total_votes - yes_votes
-            yes_pct = (yes_votes / total_votes) * 100
-
-        outcome = 'approved' if yes_pct >= 75 else 'rejected'
-        
-        # Save Result
-        result = VoteResult(
-            milestone_id=milestone.milestone_id,
-            total_yes=yes_votes,
-            total_no=no_votes,
-            yes_percentage=yes_pct,
-            outcome=outcome
-        )
-        db.add(result)
-        
-        # Update Milestone
-        milestone.status = 'approved' if outcome == 'approved' else 'rejected'
-        if outcome == 'approved':
-            milestone.approved_at = datetime.utcnow()
-            milestone.campaign.milestones_approved_count += 1
-        else:
-            milestone.rejected_at = datetime.utcnow()
-            milestone.campaign.milestones_rejected_count += 1
-            
-        db.commit()
         db.refresh(milestone)
         return milestone

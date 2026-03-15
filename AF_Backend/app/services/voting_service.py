@@ -94,6 +94,15 @@ class VotingService:
         db.add(vote)
         db.commit()
         db.refresh(vote)
+
+        # AUTO-TALLY: If all users have voted, tally immediately
+        total_tokens = db.query(VoteToken).filter(VoteToken.campaign_id == milestone.campaign_id).count()
+        total_votes = db.query(VoteSubmission).filter(VoteSubmission.milestone_id == milestone_id).count()
+
+        if total_votes >= total_tokens and total_tokens > 0:
+            print(f"[VOTING] 100% participation reached for milestone {milestone_id}. Auto-tallying...")
+            VotingService.tally_votes(db, milestone_id)
+
         return vote
 
     @staticmethod
@@ -157,6 +166,14 @@ class VotingService:
                 )
                 db.add(vote)
                 waived_count += 1
+                
+                # Check if this waiver completes a voting quorum for an OPEN milestone
+                if milestone.status == 'voting_open':
+                    total_tokens = db.query(VoteToken).filter(VoteToken.campaign_id == campaign_id).count()
+                    total_votes = db.query(VoteSubmission).filter(VoteSubmission.milestone_id == milestone.milestone_id).count()
+                    if total_votes >= total_tokens and total_tokens > 0:
+                        print(f"[VOTING] Waiver completed participation for milestone {milestone.milestone_id}. Auto-tallying...")
+                        VotingService.tally_votes(db, milestone.milestone_id)
         
         db.commit()
         return waived_count
@@ -209,6 +226,15 @@ class VotingService:
                     campaign_id=milestone.campaign_id,
                     reason=f"Milestone {milestone.description} rejected by contributors"
                 )
+            
+            # TRIGGER RELEASE: If milestone is approved, release funds immediately
+            if outcome == 'approved':
+                from app.services.financial_workflow_service import FinancialWorkflowService
+                try:
+                    FinancialWorkflowService.release_milestone_funds(db, milestone_id)
+                    print(f"[FINANCIAL] Funds released for approved milestone {milestone_id}")
+                except Exception as e:
+                    print(f"[FINANCIAL_ERROR] Failed to release funds for milestone {milestone_id}: {str(e)}")
         
         db.commit()
         db.refresh(result)

@@ -37,54 +37,55 @@ async def advance_campaign_simulation(
         }
 
     if campaign.status == 'in_phases':
-        # Find the milestone currently in the voting period
+        # Find the milestone currently in focus 
         current_m = db.query(Milestone).filter(
             Milestone.campaign_id == id,
-            Milestone.status.in_(['active', 'voting_open', 'evidence_submitted'])
+            Milestone.status.in_(['pending', 'active', 'voting_open', 'evidence_submitted', 'revision_submitted'])
         ).order_by(Milestone.milestone_number).first()
 
         if not current_m:
-            return {"status": "info", "message": "No active phase found. Please ensure the project is proceeding correctly."}
+            return {"status": "info", "message": "No phases found. Campaign might be complete."}
 
-        if current_m.status == 'active':
+        # STEP 1: If it's asleep (pending), wake it up
+        if current_m.status == 'pending':
+            MilestoneWorkflowService.activate_milestone(db, current_m.milestone_id)
+            await emit_milestone_update(str(id), {"event": "milestone_activated", "milestone_number": current_m.milestone_number})
             return {
-                "status": "manual_action", 
-                "message": f"Phase {current_m.milestone_number} is ACTIVE. Please submit evidence manually as the fundraiser."
+                "status": "success", 
+                "message": f"Phase {current_m.milestone_number} is now ACTIVE. The fundraiser can now work on this phase."
             }
 
+        # STEP 2: If it's active, submit simulated evidence
+        if current_m.status == 'active':
+            MilestoneWorkflowService.submit_evidence(
+                db=db, 
+                milestone_id=current_m.milestone_id,
+                description="[SIMULATED] Infrastructure deployment complete. Mesh network nodes installed and tested for signal strength."
+            )
+            await emit_milestone_update(str(id), {"event": "evidence_submitted", "milestone_number": current_m.milestone_number})
+            return {
+                "status": "success", 
+                "message": f"Evidence submitted for Phase {current_m.milestone_number}! Voting is now OPEN for contributors."
+            }
+
+        # STEP 3: If voting is open, perform the skip and tally
         if current_m.status == 'voting_open':
-            # RUN THE CONSENSUS CALCULATION (Handled manually by the user up to this point)
+            # RUN THE CONSENSUS CALCULATION
+            # This now automatically triggers fund release in VotingService
             MilestoneWorkflowService.tally_votes(db, current_m.milestone_id)
-            
             db.refresh(current_m)
             
-            if current_m.status == 'approved':
-                # Release the funds held in escrow
-                EscrowService.release_milestone_funds(db, current_m.milestone_id)
-                
-                # Automatically wake up the next phase
-                next_m = db.query(Milestone).filter(
-                    Milestone.campaign_id == id,
-                    Milestone.milestone_number == current_m.milestone_number + 1
-                ).first()
-                
-                if next_m:
-                    MilestoneWorkflowService.activate_milestone(db, next_m.milestone_id)
-                    next_status = f"Phase {next_m.milestone_number} is now active."
-                else:
-                    from app.services.campaign_state_service import CampaignStateService
-                    CampaignStateService.complete_campaign(db, id)
-                    next_status = "Campaign completed!"
-
-                await emit_milestone_update(str(id), {"event": "milestone_approved"})
+            if current_m.status in ['approved', 'released']:
+                # The status 'released' means funds were released automatically
+                await emit_milestone_update(str(id), {"event": "milestone_approved", "milestone_number": current_m.milestone_number})
                 return {
                     "status": "success", 
-                    "message": f"Consensus reached! Funds released. {next_status}"
+                    "message": f"Consensus reached! Funds released for Phase {current_m.milestone_number}. Click again to activate the next phase."
                 }
             else:
                 return {
                     "status": "failed", 
-                    "message": f"Consensus failed or Quorum not met. Current Status: {current_m.status}. Did you cast enough 'YES' votes manually?"
+                    "message": f"Consensus failed. Status: {current_m.status}. Did you cast enough 'YES' votes?"
                 }
 
     return {"status": "no_action", "message": f"Current status is {campaign.status}. No time-skip available."}
