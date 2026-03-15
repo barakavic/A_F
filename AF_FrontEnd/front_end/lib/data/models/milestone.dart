@@ -1,4 +1,5 @@
 class Milestone {
+  final String campaignId;
   final String id;
   final int milestoneNumber;
   final String? description;
@@ -18,6 +19,7 @@ class Milestone {
   final int maxRevisions;
 
   Milestone({
+    required this.campaignId,
     required this.id,
     required this.milestoneNumber,
     this.description,
@@ -58,6 +60,7 @@ class Milestone {
     }
 
     return Milestone(
+      campaignId: json['campaign_id']?.toString() ?? '',
       id: json['milestone_id']?.toString() ?? '',
       milestoneNumber: parseInt(json['milestone_number']),
       description: json['description'],

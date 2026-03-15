@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/milestone.dart';
 import '../../../data/repositories/campaign_repository.dart';
+import './campaign_timeline_page.dart';
 
-class SubmitEvidencePage extends StatefulWidget {
+class SubmitEvidencePage extends ConsumerStatefulWidget {
   final Milestone milestone;
 
   const SubmitEvidencePage({super.key, required this.milestone});
 
   @override
-  State<SubmitEvidencePage> createState() => _SubmitEvidencePageState();
+  ConsumerState<SubmitEvidencePage> createState() => _SubmitEvidencePageState();
 }
 
-class _SubmitEvidencePageState extends State<SubmitEvidencePage> {
+class _SubmitEvidencePageState extends ConsumerState<SubmitEvidencePage> {
   final _formKey = GlobalKey<FormState>();
   final _descController = TextEditingController();
   bool _isLoading = false;
@@ -32,11 +34,13 @@ class _SubmitEvidencePageState extends State<SubmitEvidencePage> {
           file: _selectedFile,
         );
 
+        // Invalidate the timeline to ensure it refreshes when we go back
+        ref.invalidate(campaignTimelineProvider(widget.milestone.campaignId));
+
         if (mounted) {
           Navigator.pop(context);
-          Navigator.pop(context); // Go back to timeline or dashboard
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Evidence submitted successfully! Voting period will start soon.')),
+            const SnackBar(content: Text('Evidence submitted successfully! Voting period is now open.')),
           );
         }
       } catch (e) {
