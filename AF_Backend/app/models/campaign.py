@@ -59,7 +59,7 @@ class Campaign(Base):
     
     # Relationships
     fundraiser = relationship("FundraiserProfile", back_populates="campaigns")
-    milestones = relationship("Milestone", back_populates="campaign")
+    milestones = relationship("Milestone", back_populates="campaign", order_by="Milestone.milestone_number")
     escrow_account = relationship("EscrowAccount", back_populates="campaign", uselist=False)
     vote_tokens = relationship("VoteToken", back_populates="campaign")
 

@@ -200,8 +200,8 @@ def get_campaign_timeline(
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
     
-    # Simple list of milestones with statuses
-    return campaign.milestones
+    milestones = db.query(Milestone).filter(Milestone.campaign_id == campaign_id).order_by(Milestone.milestone_number).all()
+    return milestones
 
 @router.get("/{campaign_id}/progress", response_model=CampaignProgress)
 def get_campaign_progress(

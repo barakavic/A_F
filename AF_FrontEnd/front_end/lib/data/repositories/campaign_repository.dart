@@ -32,7 +32,9 @@ class CampaignRepository {
 
   Future<List<Milestone>> getCampaignTimeline(String campaignId) async {
     final rawData = await _campaignApi.getCampaignTimeline(campaignId);
-    return rawData.map((m) => Milestone.fromJson(m)).toList();
+    final milestones = rawData.map((m) => Milestone.fromJson(m)).toList();
+    milestones.sort((a, b) => a.milestoneNumber.compareTo(b.milestoneNumber));
+    return milestones;
   }
 
   Future<Milestone> submitMilestoneEvidence({
@@ -57,5 +59,9 @@ class CampaignRepository {
 
   Future<Map<String, dynamic>> simulateAdvance(String campaignId) async {
     return await _campaignApi.simulateAdvance(campaignId);
+  }
+
+  Future<Map<String, dynamic>> getVoteStatus(String milestoneId) async {
+    return await _milestoneApi.getVoteStatus(milestoneId);
   }
 }
