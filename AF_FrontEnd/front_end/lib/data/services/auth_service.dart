@@ -30,18 +30,15 @@ class AuthService {
       if (response.statusCode == 200) {
         final token = response.data['access_token'];
         final role = response.data['role'] ?? 'fundraiser';
+        final serverEmail = response.data['email'];
         final userId = response.data['account_id'];
 
         // MUST save token first so getProfile() uses the new authentication
-        await _saveAuthData(token, role, userId, email);
+        await _saveAuthData(token, role, userId, serverEmail ?? email);
         
-        // Fetch full profile to get the name and canonical email
+        // Fetch full profile to get the name
         try {
           final profile = await getProfile();
-          final canonicalEmail = profile['email'];
-          if (canonicalEmail != null) {
-            await _storage.write(key: _userEmailKey, value: canonicalEmail);
-          }
           
           String? name;
           if (role == 'fundraiser') {

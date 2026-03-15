@@ -3,8 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import './widgets/basic_info_step.dart';
 import './widgets/otp_verification_step.dart';
-import 'package:web3dart/web3dart.dart';
-import 'dart:math';
+import '../../core/utils/crypto_utils.dart';
 import 'dart:developer' as dev;
 
 class SignupScreen extends StatefulWidget {
@@ -103,18 +102,17 @@ class _SignupScreenState extends State<SignupScreen> {
 
     String? publicKey;
     if (!_isFundraiser) {
-      // Generate a new Ethereum keypair for the contributor
-      final rng = Random.secure();
-      final EthPrivateKey credentials = EthPrivateKey.createRandom(rng);
-      publicKey = credentials.address.toString();
+      // Derive a DETERMINISTIC key from the user's email.
+      // This MUST match the key used in PhaseReviewPage for signing votes.
+      // Using a random key here would cause a permanent identity mismatch on every vote.
+      final email = _emailController.text.trim().toLowerCase();
+      final privateKey = CryptoUtils.getDeterministicKey(email);
+      publicKey = privateKey.address.toString();
       
-      // In a real production app, we would save the private key 
-      // securely in the phone's keychain (flutter_secure_storage).
-      // For this demo/testing, we log it so it can be used for manual signing if needed.
-      dev.log('--- NEW CONTRIBUTOR IDENTITY GENERATED ---');
+      dev.log('--- CONTRIBUTOR IDENTITY REGISTERED ---');
+      dev.log('Email: $email');
       dev.log('Address (Public Key): $publicKey');
-      dev.log('Private Key: ${credentials.privateKeyInt.toRadixString(16)}');
-      dev.log('-------------------------------------------');
+      dev.log('---------------------------------------');
     }
 
     final success = await authProvider.register(

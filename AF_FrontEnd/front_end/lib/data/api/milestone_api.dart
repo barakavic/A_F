@@ -53,7 +53,7 @@ class MilestoneApi {
   
   Future<Map<String, dynamic>> getVoteStatus(String milestoneId) async {
     try {
-      final response = await _apiClient.get('/milestones/$milestoneId/vote-status');
+      final response = await _apiClient.get('/votes/status/$milestoneId');
       return response.data;
     } catch (e) {
       rethrow;
