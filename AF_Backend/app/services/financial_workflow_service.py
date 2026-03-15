@@ -62,6 +62,9 @@ class FinancialWorkflowService:
         milestone.status = 'released'
         milestone.funds_released_at = datetime.utcnow()
         
+        # 5. Update Campaign Total Released
+        campaign.total_released += amount_to_release
+        
         db.commit()
         return True
 
