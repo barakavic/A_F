@@ -9,6 +9,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart' hide Provider;
 import '../../ui/pages/contributor/pending_votes_page.dart';
 import '../../providers/auth_provider.dart';
 import 'package:provider/provider.dart';
+import 'phase_review_components/phase_review_header.dart';
+import 'phase_review_components/phase_budget_card.dart';
+import 'phase_review_components/evidence_section.dart';
+import 'phase_review_components/phase_review_summary.dart';
 
 class PhaseReviewPage extends ConsumerStatefulWidget {
   final PendingMilestone milestone;
@@ -140,35 +144,7 @@ class _PhaseReviewPageState extends ConsumerState<PhaseReviewPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Phase #${widget.milestone.milestoneNumber}", style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-                          Text(widget.milestone.description ?? "", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        const Text("Possible payout", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                        Text(
-                          _formatCurrency(widget.milestone.releaseAmount), 
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  "Campaign: ${widget.milestone.campaignTitle}",
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontStyle: FontStyle.italic),
-                ),
+                PhaseReviewHeader(milestone: widget.milestone),
                 const SizedBox(height: 24),
                 
                 Row(
@@ -205,76 +181,16 @@ class _PhaseReviewPageState extends ConsumerState<PhaseReviewPage> {
                 
                 const SizedBox(height: 32),
                 
-                // Milestone Budget
-                _buildSectionHeader("Milestone Budget Breakdown"),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.grey.shade100),
-                  ),
-                  child: Column(
-                    children: [
-                       _buildBudgetItem(widget.milestone.description ?? "", _formatCurrency(widget.milestone.releaseAmount)),
-                      const Divider(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text("Total Release", style: TextStyle(fontWeight: FontWeight.bold)),
-                          Text(_formatCurrency(widget.milestone.releaseAmount), style: const TextStyle(fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+                PhaseBudgetCard(milestone: widget.milestone),
                 
                 const SizedBox(height: 32),
                 
-                // Visual Proof
-                _buildSectionHeader("Visual Proof of Work"),
-                const SizedBox(height: 12),
-                if (widget.milestone.evidenceDescription != null && widget.milestone.evidenceDescription!.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Text(
-                        widget.milestone.evidenceDescription!,
-                        style: const TextStyle(fontSize: 13, color: Colors.black87),
-                    ),
-                  ),
-                if (widget.milestone.evidenceImageUrls.isNotEmpty)
-                  SizedBox(
-                    height: 120,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: widget.milestone.evidenceImageUrls.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 12),
-                          child: _buildProofImage(widget.milestone.evidenceImageUrls[index]),
-                        );
-                      },
-                    ),
-                  )
-                else
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300, style: BorderStyle.none),
-                    ),
-                    child: const Center(
-                      child: Text("No visual evidence provided.", style: TextStyle(color: Colors.grey)),
-                    ),
-                  ),
+                EvidenceSection(milestone: widget.milestone),
 
                 const SizedBox(height: 32),
                 
                 // Phase Efficiency Summary
-                _buildPhaseEfficiencySummary(),
+                PhaseReviewSummary(milestone: widget.milestone),
                 
                 const SizedBox(height: 48),
                 
@@ -323,88 +239,4 @@ class _PhaseReviewPageState extends ConsumerState<PhaseReviewPage> {
     );
   }
 
-  Widget _buildPhaseEfficiencySummary() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _PhaseSummaryItem(label: "Ttl Payout Expected", value: _formatCurrency(widget.milestone.releaseAmount)),
-              _PhaseSummaryItem(label: "Proof Status", value: widget.milestone.evidenceDescription != null ? "Provided" : "Pending Detail"),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text("Phase Status: ", style: TextStyle(color: Colors.grey, fontSize: 12)),
-              _buildStatusPill("Ready for Vote", Colors.blue),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusPill(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
-    );
-  }
-
-  Widget _buildSectionHeader(String title) {
-    return Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey));
-  }
-
-  Widget _buildBudgetItem(String label, String amount) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(child: Text(label, style: TextStyle(color: Colors.grey.shade700))),
-          Text(amount, style: const TextStyle(fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProofImage(String url) {
-    if (!url.startsWith('http')) {
-      url = '${ApiConfig.rootUrl}/$url';
-    }
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: Image.network(url, height: 120, width: 200, fit: BoxFit.cover),
-    );
-  }
-}
-
-class _PhaseSummaryItem extends StatelessWidget {
-  final String label;
-  final String value;
-  const _PhaseSummaryItem({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
-        const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-      ],
-    );
-  }
 }
