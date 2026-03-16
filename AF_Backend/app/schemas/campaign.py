@@ -5,6 +5,7 @@ from datetime import datetime
 from decimal import Decimal
 
 class MilestoneBase(BaseModel):
+    campaign_id: UUID
     milestone_number: int
     description: Optional[str] = None
     phase_weight_wi: Decimal

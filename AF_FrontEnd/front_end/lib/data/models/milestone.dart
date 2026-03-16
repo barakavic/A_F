@@ -40,9 +40,11 @@ class Milestone {
   });
 
   factory Milestone.fromJson(Map<String, dynamic> json) {
-    DateTime? parseDate(String? dateStr) {
+    DateTime? parseDate(dynamic dateStr) {
       if (dateStr == null) return null;
-      return DateTime.tryParse(dateStr);
+      // Handle the space vs T difference in backend timestamps
+      String normalized = dateStr.toString().replaceAll(' ', 'T');
+      return DateTime.tryParse(normalized);
     }
 
     double parseDouble(dynamic value) {
