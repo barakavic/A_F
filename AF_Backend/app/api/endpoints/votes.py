@@ -23,6 +23,7 @@ class MilestonePending(BaseModel):
     voting_end_date: datetime
     release_amount: float
     evidence_description: Optional[str] = None
+    evidence_image_urls: List[str] = []
 
     class Config:
         from_attributes = True
@@ -183,9 +184,12 @@ def get_pending_votes(
         
         if not already_voted:
             evidence_desc = None
+            evidence_images = []
             if m.evidence:
                 latest_evidence = sorted(m.evidence, key=lambda x: x.uploaded_at, reverse=True)[0]
                 evidence_desc = latest_evidence.description
+                # Optionally take all evidence images or just the latest one's
+                evidence_images = [e.file_path for e in m.evidence]
 
             result.append({
                 "milestone_id": m.milestone_id,
@@ -195,7 +199,8 @@ def get_pending_votes(
                 "campaign_id": m.campaign_id,
                 "voting_end_date": m.voting_end_date,
                 "release_amount": float(m.release_amount),
-                "evidence_description": evidence_desc
+                "evidence_description": evidence_desc,
+                "evidence_image_urls": evidence_images
             })
             
     return {"milestones": result}

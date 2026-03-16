@@ -5,18 +5,20 @@ import '../../data/services/voting_service.dart';
 import '../../data/services/socket_service.dart';
 import '../../core/config/api_config.dart';
 import '../../core/utils/crypto_utils.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' hide Provider;
+import '../../ui/pages/contributor/pending_votes_page.dart';
 import '../../providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 
-class PhaseReviewPage extends StatefulWidget {
+class PhaseReviewPage extends ConsumerStatefulWidget {
   final PendingMilestone milestone;
   const PhaseReviewPage({super.key, required this.milestone});
-
+ 
   @override
-  State<PhaseReviewPage> createState() => _PhaseReviewPageState();
+  ConsumerState<PhaseReviewPage> createState() => _PhaseReviewPageState();
 }
-
-class _PhaseReviewPageState extends State<PhaseReviewPage> {
+ 
+class _PhaseReviewPageState extends ConsumerState<PhaseReviewPage> {
   final VotingService _votingService = VotingService();
   final SocketService _socketService = SocketService();
   bool _isSubmitting = false;
@@ -95,6 +97,9 @@ class _PhaseReviewPageState extends State<PhaseReviewPage> {
       if (mounted) {
         setState(() => _isSubmitting = false);
         if (success) {
+          // Invalidate the pending votes list to ensure it's fresh when we go back
+          ref.invalidate(pendingVotesProvider);
+          
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Vote $voteValue submitted successfully!')),
           );
@@ -377,7 +382,7 @@ class _PhaseReviewPageState extends State<PhaseReviewPage> {
 
   Widget _buildProofImage(String url) {
     if (!url.startsWith('http')) {
-      url = '${ApiConfig.baseUrl}$url';
+      url = '${ApiConfig.rootUrl}/$url';
     }
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),

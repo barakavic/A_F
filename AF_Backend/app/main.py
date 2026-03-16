@@ -31,6 +31,7 @@ import os
 # Ensure uploads directory exists
 os.makedirs("uploads", exist_ok=True)
 app.mount("/static", StaticFiles(directory="uploads"), name="static")
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Configure CORS
 app.add_middleware(
