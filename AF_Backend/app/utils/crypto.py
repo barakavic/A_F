@@ -47,7 +47,10 @@ def verify_vote_signature(
     
     try:
         recovered_address = Account.recover_message(signable_message, signature=signature)
-        return recovered_address.lower() == public_key.lower()
+        # Normalize: strip 0x prefix from both sides before comparing
+        recovered_norm = recovered_address.lower().removeprefix('0x')
+        expected_norm = public_key.lower().removeprefix('0x')
+        return recovered_norm == expected_norm
     except Exception:
         return False
 
@@ -65,7 +68,9 @@ def verify_waiver_signature(
     
     try:
         recovered_address = Account.recover_message(signable_message, signature=signature)
-        return recovered_address.lower() == public_key.lower()
+        recovered_norm = recovered_address.lower().removeprefix('0x')
+        expected_norm = public_key.lower().removeprefix('0x')
+        return recovered_norm == expected_norm
     except Exception:
         return False
 
