@@ -66,13 +66,12 @@ async def submit_vote(
         vote = VotingService.submit_vote(
             db=db,
             contributor_id=current_user.account_id,
-            campaign_id=request.campaign_id,
             milestone_id=request.milestone_id,
             vote_value=request.vote,
             signature=request.signature,
             nonce=request.nonce
         )
-        return {"status": "success", "vote_id": vote.id}
+        return {"status": "success", "vote_id": vote.vote_id}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

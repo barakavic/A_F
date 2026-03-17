@@ -23,6 +23,7 @@ class VotingService {
   }
 
   Future<bool> submitVote({
+    required String campaignId,
     required String milestoneId,
     required String voteValue,
     required String signature,
@@ -33,8 +34,9 @@ class VotingService {
       final response = await _apiService.post(
         ApiConfig.submitVote,
         data: {
+          'campaign_id': campaignId,
           'milestone_id': milestoneId,
-          'vote_value': voteValue,
+          'vote': voteValue,
           'signature': signature,
           'nonce': nonce,
         },

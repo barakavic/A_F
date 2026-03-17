@@ -92,6 +92,7 @@ class _PhaseReviewPageState extends ConsumerState<PhaseReviewPage> {
       );
 
       final success = await _votingService.submitVote(
+        campaignId: widget.milestone.campaignId,
         milestoneId: widget.milestone.milestoneId,
         voteValue: voteValue,
         signature: signature,
