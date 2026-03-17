@@ -40,37 +40,22 @@ class FundraiserWalletPage extends ConsumerWidget {
           const SizedBox(height: 32),
           
           // Action Buttons
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.add, size: 20),
-                  label: const Text("Deposit"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black87,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 56),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
+          Center(
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.5,
+              child: ElevatedButton.icon(
+                onPressed: () {},
+                icon: const Icon(Icons.file_download_outlined, size: 20),
+                label: const Text("Withdraw"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey.shade200,
+                  foregroundColor: Colors.black87,
+                  minimumSize: const Size(double.infinity, 56),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.file_download_outlined, size: 20),
-                  label: const Text("Withdraw"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey.shade200,
-                    foregroundColor: Colors.black87,
-                    minimumSize: const Size(double.infinity, 56),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    elevation: 0,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
           
           const SizedBox(height: 40),
