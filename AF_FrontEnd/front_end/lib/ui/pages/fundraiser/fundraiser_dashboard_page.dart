@@ -76,6 +76,7 @@ class _FundraiserDashboardPageState extends ConsumerState<FundraiserDashboardPag
             _buildWelcomeHeader(context),
             const SizedBox(height: 32),
             _buildStatsGrid(ref),
+            const SizedBox(height: 32),
             const SizedBox(height: 40),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

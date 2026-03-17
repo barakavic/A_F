@@ -47,50 +47,81 @@ class _PortfolioPageState extends State<PortfolioPage> {
     double totalInvested = _contributions.fold(0, (sum, item) => sum + item.amount);
     int activeProjects = _contributions.where((c) => c.campaignStatus == 'active' || c.campaignStatus == 'in_phases').map((c) => c.campaignId).toSet().length;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFFBFBFB),
-      appBar: AppBar(
-        title: const Text("My Portfolio", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: Colors.black,
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFFBFBFB),
+        appBar: AppBar(
+          title: const Text("My Portfolio", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          foregroundColor: Colors.black,
+          bottom: TabBar(
+            labelColor: AppColors.primary,
+            unselectedLabelColor: Colors.grey,
+            indicatorColor: AppColors.primary,
+            indicatorSize: TabBarIndicatorSize.label,
+            tabs: [
+              Tab(text: "Ongoing"),
+              Tab(text: "History"),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            _buildProjectContainer(isHistory: false, totalInvested: totalInvested, activeProjects: activeProjects),
+            _buildProjectContainer(isHistory: true, totalInvested: totalInvested, activeProjects: activeProjects),
+          ],
+        ),
       ),
-      body: RefreshIndicator(
-        onRefresh: _fetchPortfolio,
-        child: _isLoading 
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-            ? _buildErrorView()
-            : _contributions.isEmpty
-              ? _buildEmptyView()
-              : SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSummaryCard(totalInvested, activeProjects),
-                      const SizedBox(height: 32),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text("Investment History", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                          Text("${_contributions.length} total", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _contributions.length,
-                        itemBuilder: (context, index) {
-                          return _buildContributionCard(_contributions[index]);
-                        },
-                      ),
-                    ],
-                  ),
+    );
+  }
+
+  Widget _buildProjectContainer({required bool isHistory, required double totalInvested, required int activeProjects}) {
+    final filtered = _contributions.where((c) {
+      if (isHistory) {
+        return c.campaignStatus == 'completed' || c.campaignStatus == 'failed';
+      } else {
+        return c.campaignStatus != 'completed' && c.campaignStatus != 'failed';
+      }
+    }).toList();
+
+    return RefreshIndicator(
+      onRefresh: _fetchPortfolio,
+      child: _isLoading 
+        ? const Center(child: CircularProgressIndicator())
+        : _error != null
+          ? _buildErrorView()
+          : filtered.isEmpty
+            ? _buildEmptyView(isHistory)
+            : SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (!isHistory) _buildSummaryCard(totalInvested, activeProjects),
+                    if (!isHistory) const SizedBox(height: 32),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(isHistory ? "Investment History" : "My Active Stakes", 
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text("${filtered.length} projects", style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: filtered.length,
+                      itemBuilder: (context, index) {
+                        return _buildContributionCard(filtered[index]);
+                      },
+                    ),
+                  ],
                 ),
-      ),
+              ),
     );
   }
 
@@ -227,30 +258,40 @@ class _PortfolioPageState extends State<PortfolioPage> {
     return "${date.day}/${date.month}/${date.year}";
   }
 
-  Widget _buildEmptyView() {
+  Widget _buildEmptyView(bool isHistory) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.account_balance_wallet_outlined, size: 80, color: Colors.grey.shade300),
+          Icon(
+            isHistory ? Icons.history_edu_outlined : Icons.account_balance_wallet_outlined,
+            size: 80, 
+            color: Colors.grey.shade300
+          ),
           const SizedBox(height: 24),
-          const Text("No investments yet", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          Text(
+            isHistory ? "No past investments" : "No active investments",
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)
+          ),
           const SizedBox(height: 8),
           Text(
-            "Go to Discover to find projects to fund.",
+            isHistory ? "Completed and failed projects will appear here." : "Go to Discover to find projects to fund.",
+            textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey.shade600),
           ),
-          const SizedBox(height: 32),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          if (!isHistory) ...[
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text("Discover Projects"),
             ),
-            child: const Text("Discover Projects"),
-          ),
+          ]
         ],
       ),
     );

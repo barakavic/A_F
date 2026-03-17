@@ -113,7 +113,6 @@ class _ContributorDashboardState extends State<ContributorDashboard> {
             ),
           ),
           _buildPortfolioCard(),
-          const SizedBox(height: 32),
           const Text(
             'Active Investments',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

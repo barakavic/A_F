@@ -8,6 +8,7 @@ from app.models.refund_event import RefundEvent
 from datetime import datetime
 from uuid import UUID, uuid4
 from decimal import Decimal
+from app.services.campaign_state_service import CampaignStateService
 
 class FinancialWorkflowService:
 
@@ -65,6 +66,20 @@ class FinancialWorkflowService:
         # 5. Update Campaign Total Released
         campaign.total_released += amount_to_release
         
+        # 6. Check for Campaign Completion
+        total_milestones = db.query(Milestone).filter(Milestone.campaign_id == campaign.campaign_id).count()
+        released_milestones = db.query(Milestone).filter(
+            Milestone.campaign_id == campaign.campaign_id, 
+            Milestone.status == 'released'
+        ).count()
+        
+        if released_milestones == total_milestones:
+            CampaignStateService.complete_campaign(db, campaign.campaign_id)
+            
+            print(f"[FINANCIAL] Campaign {campaign.campaign_id} transitioned to COMPLETED status.")
+        else:
+            pass
+            
         db.commit()
         return True
 
@@ -91,7 +106,7 @@ class FinancialWorkflowService:
         total_contributed = sum(Decimal(str(c.amount)) for c in contributions)
         
         remaining_escrow = escrow.balance
-        refund_stats = {"total_refunded": 0, "contributor_count": len(contributions)}
+        refund_stats = {"total_refunded": 0.0, "contributor_count": len(contributions)}
 
         for contribution in contributions:
             # Formula: (User Contribution / Total Contributed) * Current Escrow Balance
@@ -126,6 +141,7 @@ class FinancialWorkflowService:
             contribution.status = 'refunded'
             
             refund_stats["total_refunded"] += float(refund_amount)
+
 
         # Deduct total from escrow once all pending entries are created
         escrow.balance = 0

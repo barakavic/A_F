@@ -5,6 +5,10 @@ Main FastAPI application entry point.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
+from app.core.socket_manager import sio
+import socketio
+from app.api.endpoints import auth, campaigns, votes, contributions, milestones, simulation
+from app.api.v1.endpoints import payments
 
 # Create FastAPI app instance
 app = FastAPI(
@@ -65,8 +69,6 @@ async def health_check():
 
 
 # API Routes
-from app.api.endpoints import auth, campaigns, votes, contributions, milestones, simulation
-from app.api.v1.endpoints import payments
 
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"])
 app.include_router(campaigns.router, prefix=f"{settings.API_V1_STR}/campaigns", tags=["Campaigns"])
@@ -76,6 +78,5 @@ app.include_router(contributions.router, prefix=f"{settings.API_V1_STR}/contribu
 app.include_router(payments.router, prefix=f"{settings.API_V1_STR}/payments", tags=["Payments"])
 app.include_router(simulation.router, prefix=f"{settings.API_V1_STR}/simulation", tags=["Simulation"])
 # Wrap with Socket.io last
-from app.core.socket_manager import sio
-import socketio
+
 app = socketio.ASGIApp(sio, other_asgi_app=app)

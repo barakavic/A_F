@@ -28,70 +28,108 @@ class ActiveProjectsPageState extends ConsumerState<ActiveProjectsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Active Projects",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  "Manage your performance and impact",
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                ),
-              ],
-            ),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          toolbarHeight: 0, // Hide app bar part but keep tab bar
+          bottom: TabBar(
+            labelColor: AppColors.primary,
+            unselectedLabelColor: Colors.grey,
+            indicatorColor: AppColors.primary,
+            indicatorSize: TabBarIndicatorSize.label,
+            tabs: [
+              Tab(text: "Ongoing"),
+              Tab(text: "History"),
+            ],
           ),
-      Expanded(
-        child: RefreshIndicator(
-          onRefresh: () async => _refreshProjects(),
-          child: ref.watch(myProjectsProvider).when(
-                data: (projects) {
-                  if (projects.isEmpty) return _buildEmptyState();
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    itemCount: projects.length,
-                    itemBuilder: (context, index) {
-                      return _buildProjectCard(context, projects[index]);
-                    },
-                  );
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (err, stack) => Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text("Failed to load projects"),
-                      TextButton(
-                        onPressed: _refreshProjects,
-                        child: const Text("Retry"),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
         ),
-      ),
-        ],
+        body: TabBarView(
+          children: [
+            _buildProjectList(isHistory: false),
+            _buildProjectList(isHistory: true),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildProjectList({required bool isHistory}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isHistory ? "Project History" : "Active Projects",
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                isHistory ? "Review your past achievements" : "Manage your performance and impact",
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () async => _refreshProjects(),
+            child: ref.watch(myProjectsProvider).when(
+                  data: (projects) {
+                    final filtered = projects.where((p) {
+                      if (isHistory) {
+                        return p.status == 'completed' || p.status == 'failed';
+                      } else {
+                        return p.status != 'completed' && p.status != 'failed';
+                      }
+                    }).toList();
+
+                    if (filtered.isEmpty) return _buildEmptyState(isHistory);
+                    return ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      itemCount: filtered.length,
+                      itemBuilder: (context, index) {
+                        return _buildProjectCard(context, filtered[index]);
+                      },
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (err, stack) => Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("Failed to load projects"),
+                        TextButton(
+                          onPressed: _refreshProjects,
+                          child: const Text("Retry"),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState(bool isHistory) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.folder_open, size: 64, color: Colors.grey.shade300),
           const SizedBox(height: 16),
-          Text("No active campaigns", style: TextStyle(color: Colors.grey.shade600)),
+          Text(
+            isHistory ? "No completed campaigns" : "No active campaigns",
+            style: TextStyle(color: Colors.grey.shade600),
+          ),
         ],
       ),
     );
