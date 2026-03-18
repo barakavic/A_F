@@ -13,12 +13,8 @@ class BasicInfoStep extends StatelessWidget {
   final TextEditingController phoneController;
   final bool isFundraiser;
   final bool obscurePassword;
-  final bool agreedToTerms;
-  final bool agreedToPrivacy;
   final VoidCallback onToggleRole;
   final VoidCallback onToggleVisibility;
-  final ValueChanged<bool?> onAgreedToTermsChanged;
-  final ValueChanged<bool?> onAgreedToPrivacyChanged;
   final String selectedCountryCode;
   final ValueChanged<String?> onCountryCodeChanged;
   final VoidCallback onNext;
@@ -34,12 +30,8 @@ class BasicInfoStep extends StatelessWidget {
     required this.phoneController,
     required this.isFundraiser,
     required this.obscurePassword,
-    required this.agreedToTerms,
-    required this.agreedToPrivacy,
     required this.onToggleRole,
     required this.onToggleVisibility,
-    required this.onAgreedToTermsChanged,
-    required this.onAgreedToPrivacyChanged,
     required this.selectedCountryCode,
     required this.onCountryCodeChanged,
     required this.onNext,
@@ -129,16 +121,7 @@ class BasicInfoStep extends StatelessWidget {
             ),
             const SizedBox(height: 30),
 
-            _buildCheckbox(
-              value: agreedToTerms,
-              label: 'I have read and understood the terms and conditions',
-              onChanged: onAgreedToTermsChanged,
-            ),
-            _buildCheckbox(
-              value: agreedToPrivacy,
-              label: 'I have read and understood the data security policy',
-              onChanged: onAgreedToPrivacyChanged,
-            ),
+            // Checkboxes removed for undergrad project simplicity
             const SizedBox(height: 40),
 
             SizedBox(
@@ -196,15 +179,6 @@ class BasicInfoStep extends StatelessWidget {
 
   Widget _buildInputLabel(String label) {
     return Align(alignment: Alignment.centerLeft, child: Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600)));
-  }
-
-  Widget _buildCheckbox({required bool value, required String label, required ValueChanged<bool?> onChanged}) {
-    return Row(
-      children: [
-        Checkbox(value: value, onChanged: onChanged, activeColor: AppColors.primary),
-        Expanded(child: Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-      ],
-    );
   }
 
   Widget _buildLoginLink(BuildContext context) {
