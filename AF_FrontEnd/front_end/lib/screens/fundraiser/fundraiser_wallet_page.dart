@@ -6,11 +6,95 @@ import 'package:intl/intl.dart';
 import '../../providers/project_provider.dart';
 import '../../data/models/fundraiser_stats.dart';
 
-class FundraiserWalletPage extends ConsumerWidget {
+class FundraiserWalletPage extends ConsumerStatefulWidget {
   const FundraiserWalletPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FundraiserWalletPage> createState() => _FundraiserWalletPageState();
+}
+
+class _FundraiserWalletPageState extends ConsumerState<FundraiserWalletPage> {
+  void _showWithdrawDialog(double availableBalance) {
+    final TextEditingController amountController = TextEditingController();
+    bool isProcessing = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: const Text("Withdraw amount"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("Available: KES ${NumberFormat('#,###.00').format(availableBalance)}", 
+                   style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              const SizedBox(height: 16),
+              TextField(
+                controller: amountController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: "Amount",
+                  prefixText: "KES ",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: isProcessing ? null : () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: isProcessing ? null : () async {
+                final amount = double.tryParse(amountController.text) ?? 0;
+                if (amount <= 0 || amount > availableBalance) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Invalid amount or insufficient balance"), backgroundColor: Colors.red),
+                  );
+                  return;
+                }
+
+                setDialogState(() => isProcessing = true);
+                
+                final success = await ref.read(projectServiceProvider).withdrawFunds(amount);
+                
+                if (mounted) {
+                  if (success) {
+                    ref.invalidate(fundraiserStatsProvider);
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("KES ${amount.toStringAsFixed(2)} withdrawn to M-Pesa"), backgroundColor: Colors.green),
+                    );
+                  } else {
+                    setDialogState(() => isProcessing = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Withdrawal unsuccessful. Please try again."), backgroundColor: Colors.red),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: isProcessing 
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : const Text("Confirm"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final statsAsync = ref.watch(fundraiserStatsProvider);
 
     return statsAsync.when(
@@ -23,61 +107,60 @@ class FundraiserWalletPage extends ConsumerWidget {
   Widget _buildContent(BuildContext context, FundraiserStats stats) {
     final currencyFormat = NumberFormat.currency(symbol: 'KES ');
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Project Balances",
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 20),
-          
-          // Balances Card
-          _buildBalancesCard(stats, currencyFormat),
-          
-          const SizedBox(height: 32),
-          
-          // Action Buttons
-          Center(
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.5,
-              child: ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.file_download_outlined, size: 20),
-                label: const Text("Withdraw"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey.shade200,
-                  foregroundColor: Colors.black87,
-                  minimumSize: const Size(double.infinity, 56),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(fundraiserStatsProvider);
+        return await ref.read(fundraiserStatsProvider.future);
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(), 
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Project Balances",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            
+            _buildBalancesCard(stats, currencyFormat),
+            
+            const SizedBox(height: 32),
+            
+            Center(
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.5,
+                child: ElevatedButton.icon(
+                  onPressed: () => _showWithdrawDialog(stats.availableBalance),
+                  icon: const Icon(Icons.file_download_outlined, size: 20),
+                  label: const Text("Withdraw"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary.withOpacity(0.08),
+                    foregroundColor: AppColors.primary,
+                    minimumSize: const Size(double.infinity, 56),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 0,
+                  ),
                 ),
               ),
             ),
-          ),
-          
-          const SizedBox(height: 40),
-          
-          // Transaction List Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Transaction List",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              Icon(Icons.filter_list, color: Colors.grey.shade400, size: 20),
-            ],
-          ),
-          const SizedBox(height: 16),
-          
-          // Ledger
-          _buildLedger(stats),
-          
-          const SizedBox(height: 24),
-        ],
+            
+            const SizedBox(height: 40),
+            
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Transaction List", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Icon(Icons.filter_list, color: Colors.grey.shade400, size: 20),
+              ],
+            ),
+            const SizedBox(height: 16),
+            
+            _buildLedger(stats),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }
@@ -158,12 +241,29 @@ class FundraiserWalletPage extends ConsumerWidget {
       child: ListView.separated(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: 2, // Dummy entries for now if there's balance but no ledger implementation
+        itemCount: stats.totalWithdrawn > 0 ? 3 : 2, 
         separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey.shade100),
         itemBuilder: (context, index) {
+          final now = DateTime.now();
+          final String today = DateFormat('dd.MM.yy').format(now);
+
           final transactions = [
-            {"title": "Escrow Payout: Phase 1", "amt": "+KES ${stats.availableBalance.toInt()}", "status": "Completed", "date": "Recent"},
-            {"title": "Initial Funding", "amt": "+KES ${stats.totalRaised.toInt()}", "status": "In Escrow", "date": "Recent"},
+            if (stats.totalWithdrawn > 0)
+              {
+                "title": "Total Withdrawn", 
+                "amt": "-KES ${NumberFormat('#,###').format(stats.totalWithdrawn)}", 
+                "date": today
+              },
+            {
+              "title": "Escrow Payout: Phase 1", 
+              "amt": "+KES ${NumberFormat('#,###').format(stats.availableBalance + stats.totalWithdrawn)}", 
+              "date": "15.03.24"
+            },
+            {
+              "title": "Initial Funding", 
+              "amt": "+KES ${NumberFormat('#,###').format(stats.totalRaised)}", 
+              "date": "10.03.24"
+            },
           ];
           
           final item = transactions[index];
@@ -184,7 +284,7 @@ class FundraiserWalletPage extends ConsumerWidget {
               ),
             ),
             title: Text(item['title']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            subtitle: Text("${item['date']} • ${item['status']}", style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
+            subtitle: Text(item['date']!, style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
             trailing: Text(item['amt']!, style: TextStyle(fontWeight: FontWeight.bold, color: isNegative ? Colors.black87 : Colors.green)),
           );
         },

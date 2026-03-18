@@ -117,4 +117,18 @@ class ProjectService {
       return FundraiserStats.empty();
     }
   }
+
+  // Withdraw funds from platform wallet
+  Future<bool> withdrawFunds(double amount) async {
+    try {
+      final response = await _apiService.post(
+        ApiConfig.withdraw,
+        data: {'amount': amount},
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print('WITHDRAW ERROR: $e');
+      return false;
+    }
+  }
 }

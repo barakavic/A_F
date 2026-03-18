@@ -43,6 +43,7 @@ class FundraiserProfile(Base):
     industry_l2_id = Column(GUID(), ForeignKey("company_category_l2.l2_id"), nullable=True)
     risk_score_c = Column(Numeric(4, 3))
     br_verified = Column(Boolean, default=False)
+    total_withdrawn = Column(Numeric(12, 2), default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     user = relationship("User", back_populates="fundraiser_profile")

@@ -111,9 +111,17 @@ class CampaignProgress(BaseModel):
     next_action_required: str
     days_remaining: Optional[int] = None
 
+class WithdrawalRequest(BaseModel):
+    amount: Decimal
+
+class WithdrawalResult(BaseModel):
+    amount: Decimal
+    new_balance: Decimal
+
 class FundraiserStats(BaseModel):
     total_raised: Decimal
     active_phases_count: int
     available_balance: Decimal
+    total_withdrawn: Decimal
     escrow_balance: Decimal
     active_projects_count: int

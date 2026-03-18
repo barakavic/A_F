@@ -7,7 +7,7 @@ import os
 import shutil
 
 from app.api.dependencies.deps import get_db, get_current_user
-from app.schemas.campaign import CampaignCreate, CampaignOut, CampaignUpdate, MilestoneOut, CampaignProgress, FundraiserStats
+from app.schemas.campaign import CampaignCreate, CampaignOut, CampaignUpdate, MilestoneOut, CampaignProgress, FundraiserStats, WithdrawalRequest, WithdrawalResult
 from app.models.milestone import Milestone
 from app.models.user import User
 from app.models.campaign import Campaign
@@ -75,6 +75,11 @@ def get_fundraiser_stats(
     
     total_raised = campaign_sums.total_raised or 0
     total_released = campaign_sums.total_released or 0
+    
+    # Subtract withdrawals from available balance
+    total_withdrawn = current_user.fundraiser_profile.total_withdrawn or 0
+    available_balance = total_released - total_withdrawn
+    
     escrow_balance = total_raised - total_released
     
     active_projects_count = db.query(Campaign)\
@@ -92,7 +97,8 @@ def get_fundraiser_stats(
     return {
         "total_raised": total_raised,
         "active_phases_count": active_phases,
-        "available_balance": total_released, # Funds passed through milestones
+        "available_balance": available_balance, # Funds passed through milestones - withdrawn
+        "total_withdrawn": total_withdrawn,
         "escrow_balance": escrow_balance,     # Funds still in escrow
         "active_projects_count": active_projects_count
     }
@@ -200,8 +206,8 @@ def get_campaign_timeline(
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
     
-    milestones = db.query(Milestone).filter(Milestone.campaign_id == campaign_id).order_by(Milestone.milestone_number).all()
-    return milestones
+    # Simple list of milestones with statuses
+    return campaign.milestones
 
 @router.get("/{campaign_id}/progress", response_model=CampaignProgress)
 def get_campaign_progress(
@@ -272,3 +278,45 @@ def cancel_campaign(
         return updated_campaign
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/withdraw", response_model=WithdrawalResult)
+def withdraw_funds(
+    withdrawal_in: WithdrawalRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Simulated withdrawal of funds to M-Pesa.
+    Increments total_withdrawn on the fundraiser profile.
+    """
+    if current_user.role != 'fundraiser':
+        raise HTTPException(status_code=403, detail="Only fundraisers can withdraw funds")
+        
+    profile = current_user.fundraiser_profile
+    if not profile:
+         raise HTTPException(status_code=404, detail="Fundraiser profile not found")
+
+    # 1. Calculate current available balance
+    campaign_sums = db.query(
+        func.sum(Campaign.total_released).label("total_released")
+    ).filter(Campaign.fundraiser_id == current_user.account_id).first()
+    
+    total_released = campaign_sums.total_released or 0
+    current_available = total_released - (profile.total_withdrawn or 0)
+
+    if withdrawal_in.amount <= 0:
+        raise HTTPException(status_code=400, detail="Amount must be greater than zero")
+        
+    if withdrawal_in.amount > current_available:
+        raise HTTPException(status_code=400, detail=f"Insufficient balance. Available: KES {current_available:,.2f}")
+
+    # 2. Update profile
+    profile.total_withdrawn = (profile.total_withdrawn or 0) + withdrawal_in.amount
+    db.add(profile)
+    db.commit()
+    db.refresh(profile)
+
+    return {
+        "amount": withdrawal_in.amount,
+        "new_balance": total_released - profile.total_withdrawn
+    }
