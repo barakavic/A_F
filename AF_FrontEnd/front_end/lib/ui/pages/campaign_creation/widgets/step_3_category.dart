@@ -78,41 +78,8 @@ class Step3Category extends ConsumerWidget {
               _buildAlgoStat("Phase count (P)", state.estimatedPhaseCount.toString(), Colors.blue),
             ],
           ),
-          const SizedBox(height: 24),
-          const Divider(),
-          const SizedBox(height: 24),
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Milestone Weighting", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-              Icon(Icons.auto_graph, size: 18, color: Colors.grey),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildMiniWeightChart(state.estimatedPhaseCount),
+          const SizedBox(height: 8),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMiniWeightChart(int count) {
-    return SizedBox(
-      height: 60,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: List.generate(count, (index) {
-          final height = 20.0 + (index * 8);
-          return Expanded(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              height: height,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity((0.2 + (index * 0.1)).clamp(0.1, 1.0)),
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-          );
-        }),
       ),
     );
   }
