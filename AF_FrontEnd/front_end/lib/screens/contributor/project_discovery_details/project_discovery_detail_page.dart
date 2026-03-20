@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/project.dart';
 import '../../../../data/repositories/payment_repository.dart';
@@ -38,7 +39,7 @@ class _ProjectDiscoveryDetailState
       setState(() => _amountError = null);
       return;
     }
-    final amount = double.tryParse(value);
+    final amount = CurrencyFormatter.parse(value);
     final remaining = goal - raised;
     setState(() {
       if (amount == null) {
@@ -115,8 +116,8 @@ class _ProjectDiscoveryDetailState
       }
     }
 
-    final amount = double.tryParse(amountText);
-    if (amount == null || amount <= 0) {
+    final amount = CurrencyFormatter.parse(amountText);
+    if (amount <= 0) {
       _showSnackBar("Invalid amount");
       return;
     }
