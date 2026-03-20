@@ -50,6 +50,8 @@ dependencies:
   # Authentication (keeping your existing setup)
   firebase_auth: ^4.17.4
   firebase_core: ^2.30.0
+  firebase_messaging: ^14.7.15
+  flutter_local_notifications: ^17.1.2
   google_sign_in: ^6.2.1
   supabase_flutter: ^2.9.1
   

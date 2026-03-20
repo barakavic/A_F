@@ -87,12 +87,23 @@ class CampaignStateService:
         """
         Finalizes a campaign after all milestones are approved.
         """
-        return CampaignStateService.transition_status(db, campaign_id, 'completed')
+        campaign = CampaignStateService.transition_status(db, campaign_id, 'completed')
+        
+        # Trigger Broadcast
+        from app.services.notification_service import NotificationService
+        NotificationService.notify_campaign_completed(campaign.id, campaign.title)
+        
+        return campaign
 
     @staticmethod
     def terminate_campaign(db: Session, campaign_id: UUID) -> Campaign:
         """
         Marks campaign as failed (triggers refund process in workflow).
         """
-        # Note: Refund logic will be handled by a higher-level workflow service
-        return CampaignStateService.transition_status(db, campaign_id, 'failed')
+        campaign = CampaignStateService.transition_status(db, campaign_id, 'failed')
+        
+        # Trigger Broadcast
+        from app.services.notification_service import NotificationService
+        NotificationService.notify_campaign_failed(campaign.id, campaign.title)
+        
+        return campaign

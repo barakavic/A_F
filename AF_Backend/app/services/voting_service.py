@@ -218,6 +218,16 @@ class VotingService:
         if milestone:
             milestone.status = outcome
             
+            # TRIGGER BROADCAST EVENT: Voting Results
+            from app.services.notification_service import NotificationService
+            NotificationService.notify_vote_results(
+                milestone.campaign_id,
+                milestone.campaign.title,
+                milestone.milestone_number,
+                outcome == 'approved',
+                yes_percentage
+            )
+            
             # TRIGGER REFUND: If milestone is rejected, the whole campaign is refunded
             if outcome == 'rejected':
                 from app.services.refund_service import RefundService

@@ -62,3 +62,6 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     account_id: Optional[str] = None
 
+class FCMTokenUpdate(BaseModel):
+    fcm_token: str
+

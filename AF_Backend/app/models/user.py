@@ -17,6 +17,7 @@ class User(Base):
     last_login = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    fcm_token = Column(String(512), nullable=True) 
     
     # Relationships
     contributor_profile = relationship("ContributorProfile", back_populates="user", uselist=False)

@@ -11,6 +11,7 @@ from app.services.contribution_service import ContributionService
 from app.core.redis import save_stk_session, get_stk_session, delete_stk_session
 from app.core.config import settings
 import re
+from app.services.notification_service import NotificationService
 
 class PaymentService:
     @staticmethod
@@ -145,12 +146,27 @@ class PaymentService:
                 amount = session_data["amount"]
                 
                 # This triggers the entire flow: Escrow update, Ledger entry, Vote token
-                ContributionService.create_contribution(
+                result = ContributionService.create_contribution(
                     db=db,
                     campaign_id=campaign_id,
                     contributor_id=contributor_id,
                     amount=amount
                 )
+                
+                # Trigger Push Notifications
+                contribution = result.get("contribution")
+                if contribution:
+                    NotificationService.notify_investment_confirmed(
+                        db, contributor_id, contribution.campaign.title, amount
+                    )
+                    
+                    if contribution.campaign.total_contributions >= contribution.campaign.funding_goal_f:
+                        NotificationService.notify_campaign_funded(
+                            db, 
+                            contribution.campaign.fundraiser_id, 
+                            campaign_id, 
+                            contribution.campaign.title
+                        )
                 
                 # Clean up Redis session
                 delete_stk_session(checkout_request_id)

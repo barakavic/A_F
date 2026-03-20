@@ -66,6 +66,12 @@ class FinancialWorkflowService:
         # 5. Update Campaign Total Released
         campaign.total_released += amount_to_release
         
+        # TRIGGER NOTIFICATION: Withdrawal completed successfully
+        from app.services.notification_service import NotificationService
+        NotificationService.notify_withdrawal_completed(
+            db, campaign.fundraiser_id, campaign.title, float(amount_to_release)
+        )
+        
         # 6. Check for Campaign Completion
         total_milestones = db.query(Milestone).filter(Milestone.campaign_id == campaign.campaign_id).count()
         released_milestones = db.query(Milestone).filter(

@@ -1,6 +1,15 @@
+# Firebase Service Account
+firebase-service-account.json
 
-# Test Data and Scripts
+# Environment and Secrets
+.env
 *.sql
 test_data/
 uploads/
 
+# Python Temporary Files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/

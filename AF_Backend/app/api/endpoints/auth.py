@@ -9,7 +9,7 @@ from app.api.dependencies.deps import get_db, get_current_user
 from app.core import security
 from app.core.config import settings
 from app.models.user import User, ContributorProfile, FundraiserProfile
-from app.schemas.user import ContributorRegister, FundraiserRegister, Token, User as UserSchema, UserOut
+from app.schemas.user import ContributorRegister, FundraiserRegister, Token, User as UserSchema, UserOut, FCMTokenUpdate
 
 router = APIRouter()
 
@@ -137,3 +137,17 @@ def read_user_me(
     Get current user.
     """
     return current_user
+
+@router.post("/fcm-token")
+def update_fcm_token(
+    data: FCMTokenUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Update the FCM token for the current user.
+    """
+    current_user.fcm_token = data.fcm_token
+    db.add(current_user)
+    db.commit()
+    return {"status": "ok", "message": "FCM token updated successfully"}
