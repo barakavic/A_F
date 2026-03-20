@@ -130,18 +130,20 @@ class _FundraiserWalletPageState extends ConsumerState<FundraiserWalletPage> {
             
             Center(
               child: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.5,
-                child: ElevatedButton.icon(
-                  onPressed: () => _showWithdrawDialog(stats.availableBalance),
-                  icon: const Icon(Icons.file_download_outlined, size: 20),
-                  label: const Text("Withdraw"),
+                width: MediaQuery.of(context).size.width * 0.6,
+                child: ElevatedButton(
+                  onPressed: stats.availableBalance > 0 
+                      ? () => _showWithdrawDialog(stats.availableBalance)
+                      : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary.withOpacity(0.08),
-                    foregroundColor: AppColors.primary,
-                    minimumSize: const Size(double.infinity, 56),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    elevation: 0,
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.grey.shade300,
+                    disabledForegroundColor: Colors.grey.shade500,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
+                  child: const Text("Withdraw Funds"),
                 ),
               ),
             ),
@@ -168,29 +170,25 @@ class _FundraiserWalletPageState extends ConsumerState<FundraiserWalletPage> {
   Widget _buildBalancesCard(FundraiserStats stats, NumberFormat format) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10)),
-        ],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("Available Balance", style: TextStyle(color: Colors.white70, fontSize: 14)),
+          const Text("Available Balance", style: TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
-          Text(
-            format.format(stats.availableBalance), 
-            style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)
-          ),
-          const SizedBox(height: 24),
+          Text(format.format(stats.availableBalance), 
+               style: const TextStyle(color: Colors.black, fontSize: 24, fontWeight: FontWeight.bold)),
+          const Divider(height: 32),
           Row(
             children: [
-              _buildSmallBalance("Escrow (Locked)", format.format(stats.escrowBalance)),
-              const SizedBox(width: 40),
-              _buildSmallBalance("Projects", "${stats.activeProjectsCount} Active"),
+              _buildSimpleStat("Escrow", format.format(stats.escrowBalance)),
+              const SizedBox(width: 32),
+              _buildSimpleStat("Active Projects", stats.activeProjectsCount.toString()),
             ],
           ),
         ],
@@ -198,13 +196,13 @@ class _FundraiserWalletPageState extends ConsumerState<FundraiserWalletPage> {
     );
   }
 
-  Widget _buildSmallBalance(String label, String value) {
+  Widget _buildSimpleStat(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white60, fontSize: 11)),
-        const SizedBox(height: 4),
-        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
+        const SizedBox(height: 2),
+        Text(value, style: const TextStyle(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.bold)),
       ],
     );
   }

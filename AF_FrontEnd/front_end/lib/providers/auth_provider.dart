@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../data/services/auth_service.dart';
 
+import '../data/services/notification_service.dart';
+
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
 
@@ -61,6 +63,10 @@ class AuthProvider extends ChangeNotifier {
       _userDisplayName = await _authService.getUserDisplayName();
       _userId = await _authService.getUserId();
       _userEmail = await _authService.getUserEmail(); // Use server-verified email
+      
+      // Ensure the device token connects to this newly logged-in account
+      NotificationService().init();
+      
       _setLoading(false);
       return true;
     } catch (e) {

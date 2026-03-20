@@ -32,8 +32,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
   bool _isFundraiser = false;
   bool _obscurePassword = true;
-  bool _agreedToTerms = false;
-  bool _agreedToPrivacy = false;
   String _selectedCountryCode = '+254';
 
   @override
@@ -56,12 +54,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
   void _nextStep() {
     if (_formKey.currentState!.validate()) {
-      if (!_agreedToTerms || !_agreedToPrivacy) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please agree to the Terms and Privacy Policy')),
-        );
-        return;
-      }
       
       setState(() => _currentStep = 1);
       _pageController.nextPage(
@@ -172,12 +164,8 @@ class _SignupScreenState extends State<SignupScreen> {
                 phoneController: _phoneController,
                 isFundraiser: _isFundraiser,
                 obscurePassword: _obscurePassword,
-                agreedToTerms: _agreedToTerms,
-                agreedToPrivacy: _agreedToPrivacy,
                 onToggleRole: () => setState(() => _isFundraiser = !_isFundraiser),
                 onToggleVisibility: () => setState(() => _obscurePassword = !_obscurePassword),
-                onAgreedToTermsChanged: (val) => setState(() => _agreedToTerms = val!),
-                onAgreedToPrivacyChanged: (val) => setState(() => _agreedToPrivacy = val!),
                 selectedCountryCode: _selectedCountryCode,
                 onCountryCodeChanged: (code) => setState(() => _selectedCountryCode = code!),
                 onNext: _nextStep,

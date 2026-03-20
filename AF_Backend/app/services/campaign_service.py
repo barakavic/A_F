@@ -5,6 +5,7 @@ from app.models.escrow import EscrowAccount
 from app.models.user import FundraiserProfile
 from app.services.algorithm_service import AlgorithmService
 from datetime import datetime, timedelta
+from typing import List, Tuple, Optional
 import uuid
 
 class CampaignService:
@@ -17,7 +18,8 @@ class CampaignService:
         funding_goal: float,
         duration_months: int,
         category: str = 'General',
-        campaign_type: str = 'donation'
+        campaign_type: str = 'donation',
+        budget_data: Optional[str] = None
     ) -> Campaign:
         """
         Create a new campaign and generate milestones based on algorithms.
@@ -52,6 +54,7 @@ class CampaignService:
             category_c=risk_c,
             num_phases_p=phase_count,
             alpha_value=alpha,
+            budget_data=budget_data,
             status='draft'
         )
         db.add(campaign)

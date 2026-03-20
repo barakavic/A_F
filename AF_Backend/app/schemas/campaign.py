@@ -50,6 +50,7 @@ class CampaignBase(BaseModel):
     duration_d: int = Field(..., alias="duration_months")
     category: str = "General"
     campaign_type_ct: str = Field("donation", alias="campaign_type")
+    budget_data: Optional[str] = None # JSON string
 
 class CampaignCreate(CampaignBase):
     pass
@@ -78,6 +79,7 @@ class CampaignOut(BaseModel):
     category_name: str
     total_contributions: Decimal
     total_released: Decimal
+    budget_data: Optional[str] = None
     
     # New Markers
     submitted_for_review_at: Optional[datetime] = None

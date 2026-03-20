@@ -10,6 +10,8 @@ from app.models.user import User
 from app.services.contribution_service import ContributionService
 from app.core.redis import save_stk_session, get_stk_session, delete_stk_session
 from app.core.config import settings
+import re
+from app.services.notification_service import NotificationService
 
 class PaymentService:
     @staticmethod
@@ -52,26 +54,28 @@ class PaymentService:
             raise Exception("Could not authenticate with Safaricom Daraja API")
 
         # 3. Prepare STK Push Request
-        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+        timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
         password_str = f"{settings.MPESA_SHORTCODE}{settings.MPESA_PASSKEY}{timestamp}"
         password = base64.b64encode(password_str.encode()).decode()
         
         url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
-        if settings.MPESA_ENVIRONMENT == "production":
-            url = "https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
+       
+        # Only allow alphanumeric and spaces preventing 'Evaluation of XSL' errors.
+        safe_title = re.sub(r'[^a-zA-Z0-9 ]', '', campaign.title[:15])
+        safe_ref = f"CAF{campaign.campaign_id.hex[:6]}".upper()
 
         payload = {
             "BusinessShortCode": settings.MPESA_SHORTCODE,
             "Password": password,
-            "Timestamp": timestamp,"Amount": 1, # TEST MODE: Only charge 1 KES regardless of actual contribution
+            "Timestamp": timestamp,
+            "Amount": 1, 
             "TransactionType": "CustomerPayBillOnline",
-            
             "PartyA": phone_number,
             "PartyB": settings.MPESA_SHORTCODE,
             "PhoneNumber": phone_number,
             "CallBackURL": settings.MPESA_CALLBACK_URL,
-            "AccountReference": f"CAF-{campaign.campaign_id.hex[:6]}",
-            "TransactionDesc": f"Contribution to {campaign.title[:20]}"
+            "AccountReference": safe_ref,
+            "TransactionDesc": f"Pay {safe_title}"
         }
 
         headers = {"Authorization": f"Bearer {access_token}"}
@@ -98,7 +102,8 @@ class PaymentService:
                     "message": "STK Push sent. Please check your phone for the M-Pesa prompt."
                 }
             else:
-                error_msg = response_data.get("errorMessage", "Unknown Daraja error")
+                print(f"DEBUG: Safaricom Raw Error Response: {response_data}")
+                error_msg = response_data.get("errorMessage") or response_data.get("ResponseDescription") or "Unknown Daraja error"
                 raise Exception(f"Safaricom rejected request: {error_msg}")
                 
         except Exception as e:
@@ -141,12 +146,27 @@ class PaymentService:
                 amount = session_data["amount"]
                 
                 # This triggers the entire flow: Escrow update, Ledger entry, Vote token
-                ContributionService.create_contribution(
+                result = ContributionService.create_contribution(
                     db=db,
                     campaign_id=campaign_id,
                     contributor_id=contributor_id,
                     amount=amount
                 )
+                
+                # Trigger Push Notifications
+                contribution = result.get("contribution")
+                if contribution:
+                    NotificationService.notify_investment_confirmed(
+                        db, contributor_id, contribution.campaign.title, amount
+                    )
+                    
+                    if contribution.campaign.total_contributions >= contribution.campaign.funding_goal_f:
+                        NotificationService.notify_campaign_funded(
+                            db, 
+                            contribution.campaign.fundraiser_id, 
+                            campaign_id, 
+                            contribution.campaign.title
+                        )
                 
                 # Clean up Redis session
                 delete_stk_session(checkout_request_id)

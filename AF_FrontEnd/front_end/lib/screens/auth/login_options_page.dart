@@ -25,7 +25,7 @@ class LoginOptionsPage extends StatelessWidget {
                 height: 100,
               ),
               const SizedBox(
-                height: 40,
+                height: 160,
               ),
               ElevatedButton.icon(
                 onPressed: () {
@@ -62,117 +62,7 @@ class LoginOptionsPage extends StatelessWidget {
                   side: const BorderSide(color: Colors.grey),
                 ),
               ),
-              const SizedBox(
-                height: 16,
-              ),
-              ElevatedButton.icon(
-                onPressed: () async {
-                  final authService = AuthService();
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (context) => const Center(child: CircularProgressIndicator()),
-                  );
-
-                  try {
-                    final result = await authService.login('test@ascentfin.com', 'password123');
-                    final role = result['role'] ?? 'fundraiser';
-
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      if (role == 'fundraiser') {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => const FundraiserDashboardPage()),
-                        );
-                      } else {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => const ContributorDashboard()),
-                        );
-                      }
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Bypass login failed: $e")),
-                      );
-                    }
-                  }
-                },
-                label: const Text("Continue with SSO"),
-                icon: const Icon(Icons.key),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orangeAccent,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 54),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: () async {
-                  final authService = AuthService();
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (context) => const Center(child: CircularProgressIndicator()),
-                  );
-
-                  try {
-                    await authService.login('victor@test.com', 'password123');
-                    
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => const ContributorDashboard()),
-                      );
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => const ContributorDashboard()),
-                      );
-                    }
-                  }
-                },
-                label: const Text("Bypass as Contributor"),
-                icon: const Icon(Icons.person_outline),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueGrey,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 54),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 40),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text(
-                      'Privacy Policy',
-                      style: TextStyle(color: Colors.blueGrey, fontSize: 12),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text(
-                      'Terms and Conditions',
-                      style: TextStyle(color: Colors.blueGrey, fontSize: 12),
-                    ),
-                  )
-                ],
-              )
+              
             ],
           ),
         ),

@@ -17,6 +17,7 @@ class CampaignDetails {
   final List<Milestone> milestones;
   final int currentMilestoneNumber;
   final int milestonesApprovedCount;
+  final String? budgetData;
 
   CampaignDetails({
     required this.campaignId,
@@ -35,6 +36,7 @@ class CampaignDetails {
     required this.milestones,
     required this.currentMilestoneNumber,
     required this.milestonesApprovedCount,
+    this.budgetData,
   });
 
   factory CampaignDetails.fromJson(Map<String, dynamic> json) {
@@ -64,6 +66,7 @@ class CampaignDetails {
           .toList(),
       currentMilestoneNumber: json['current_milestone_number'] ?? 0,
       milestonesApprovedCount: json['milestones_approved_count'] ?? 0,
+      budgetData: json['budget_data'],
     );
   }
 }

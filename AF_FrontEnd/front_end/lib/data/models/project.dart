@@ -15,6 +15,7 @@ class Project {
   final String category;
   final int numPhases;
   final String? coverImageUrl;
+  final String? budgetData;
 
   Project({
     this.id,
@@ -33,6 +34,7 @@ class Project {
     this.category = 'General',
     this.numPhases = 0,
     this.coverImageUrl,
+    this.budgetData,
   });
 
   factory Project.fromJson(Map<String, dynamic> json) {
@@ -66,6 +68,7 @@ class Project {
       category: (json['category_name'] ?? json['category'] ?? 'General').toString(),
       numPhases: parseInt(json['num_phases_p'] ?? json['num_phases']),
       coverImageUrl: json['cover_image_url']?.toString(),
+      budgetData: json['budget_data']?.toString(),
     );
   }
 
@@ -75,9 +78,9 @@ class Project {
       'description': description,
       'funding_goal': goalAmount,
       'duration_months': durationMonths,
-      'category': category,
       'campaign_type': 'donation',
       'num_phases': numPhases,
+      'budget_data': budgetData,
     };
   }
 }

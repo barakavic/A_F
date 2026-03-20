@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front_end/core/constants/app_colors.dart';
 import 'package:front_end/providers/campaign_wizard_provider.dart';
+import 'package:front_end/core/utils/currency_formatter.dart';
 import 'wizard_shared_widgets.dart';
+import 'budget_builder.dart';
 
 class Step3Category extends ConsumerWidget {
   final GlobalKey<FormState> formKey;
@@ -24,12 +26,12 @@ class Step3Category extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "Category & Analysis",
+              "Proposed Budget",
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              "Select your industry to help us analyze the risk.",
+              "Break down how you plan to use the KES ${CurrencyFormatter.format(state.goalAmount)} funding.",
               style: TextStyle(color: Colors.grey.shade600, height: 1.5),
             ),
             const SizedBox(height: 32),
@@ -48,6 +50,8 @@ class Step3Category extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             _buildAlgoPreview(state),
+            const SizedBox(height: 48),
+            const BudgetBuilder(),
           ],
         ),
       ),
@@ -78,41 +82,8 @@ class Step3Category extends ConsumerWidget {
               _buildAlgoStat("Phase count (P)", state.estimatedPhaseCount.toString(), Colors.blue),
             ],
           ),
-          const SizedBox(height: 24),
-          const Divider(),
-          const SizedBox(height: 24),
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Milestone Weighting", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-              Icon(Icons.auto_graph, size: 18, color: Colors.grey),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildMiniWeightChart(state.estimatedPhaseCount),
+          const SizedBox(height: 8),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMiniWeightChart(int count) {
-    return SizedBox(
-      height: 60,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: List.generate(count, (index) {
-          final height = 20.0 + (index * 8);
-          return Expanded(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              height: height,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity((0.2 + (index * 0.1)).clamp(0.1, 1.0)),
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-          );
-        }),
       ),
     );
   }

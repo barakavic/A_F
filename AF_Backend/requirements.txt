@@ -59,3 +59,6 @@ mypy==1.7.1
 rich==13.7.0
 prompt-toolkit==3.0.43
 aioconsole==0.7.1
+
+# Notification Engine
+firebase-admin==6.3.0

@@ -52,6 +52,21 @@ class Step4Review extends ConsumerWidget {
                 ],
               ),
             ),
+            if (state.budgetItems.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              const Text("Budget Breakdown", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 12),
+              ...state.budgetItems.map((item) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(item['activity']?.toString() ?? "Item", style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                    Text("KES ${item['amount']}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  ],
+                ),
+              )).toList(),
+            ],
             if (state.coverImagePath != null) ...[
               const SizedBox(height: 24),
               const Text("Cover Image Format", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),

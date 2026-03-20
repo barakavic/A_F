@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/project.dart';
 import '../../../../data/repositories/payment_repository.dart';
@@ -9,6 +10,7 @@ import 'widgets/project_stats_row.dart';
 import 'widgets/project_funding_progress.dart';
 import 'widgets/project_fundraiser_trust.dart';
 import 'widgets/project_funding_bar.dart';
+import 'widgets/project_budget_display.dart';
 
 class ProjectDiscoveryDetail extends ConsumerStatefulWidget {
   final Project project;
@@ -37,7 +39,7 @@ class _ProjectDiscoveryDetailState
       setState(() => _amountError = null);
       return;
     }
-    final amount = double.tryParse(value);
+    final amount = CurrencyFormatter.parse(value);
     final remaining = goal - raised;
     setState(() {
       if (amount == null) {
@@ -114,8 +116,8 @@ class _ProjectDiscoveryDetailState
       }
     }
 
-    final amount = double.tryParse(amountText);
-    if (amount == null || amount <= 0) {
+    final amount = CurrencyFormatter.parse(amountText);
+    if (amount <= 0) {
       _showSnackBar("Invalid amount");
       return;
     }
@@ -210,6 +212,8 @@ class _ProjectDiscoveryDetailState
                               height: 1.6,
                               fontSize: 15),
                         ),
+                        const SizedBox(height: 32),
+                        ProjectBudgetDisplay(budgetData: project.budgetData),
                         const SizedBox(height: 32),
                         ProjectFundraiserTrust(
                           fundraiserName: project.fundraiserName,

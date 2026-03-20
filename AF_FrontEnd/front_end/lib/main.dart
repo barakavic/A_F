@@ -8,11 +8,18 @@ import 'data/services/socket_service.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'data/services/notification_service.dart';
+
 const supabaseUrl = 'https://fchaxglq1scawnbayqk.supabase.co';
 const supabaseKey = String.fromEnvironment('SUPABASE_KEY');
 
-Future <void> main() async{
+Future <void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // 1. Initialize Firebase
+  await Firebase.initializeApp();
+  
   await dotenv.load(fileName: ".env");
   SocketService().init();
 
@@ -20,6 +27,9 @@ Future <void> main() async{
     url: supabaseUrl,
     anonKey: supabaseKey
   );
+
+  NotificationService().init();
+
   
   runApp(
     ProviderScope(

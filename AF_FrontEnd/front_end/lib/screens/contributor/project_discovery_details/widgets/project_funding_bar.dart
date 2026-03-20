@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/constants/app_colors.dart';
 
 class ProjectFundingBar extends StatelessWidget {
@@ -85,6 +86,7 @@ class ProjectFundingBar extends StatelessWidget {
                           ),
                           onChanged: onAmountChanged,
                           keyboardType: TextInputType.number,
+                          inputFormatters: [CurrencyFormatter.inputFormatter],
                           style: const TextStyle(fontSize: 14),
                         ),
                       ),

@@ -29,6 +29,12 @@ class MilestoneWorkflowService:
         campaign = milestone.campaign
         campaign.current_milestone_number = milestone.milestone_number
         
+        # TRIGGER NOTIFICATION: Fundraiser needs to submit evidence
+        from app.services.notification_service import NotificationService
+        NotificationService.notify_milestone_submission_required(
+            db, campaign.fundraiser_id, campaign.title, milestone.milestone_number
+        )
+        
         db.commit()
         db.refresh(milestone)
         return milestone
@@ -78,6 +84,12 @@ class MilestoneWorkflowService:
         milestone.voting_start_date = datetime.utcnow()
         milestone.voting_end_date = datetime.utcnow() + timedelta(days=7)
         
+        # TRIGGER BROADCAST EVENT: Voting Window Open
+        from app.services.notification_service import NotificationService
+        NotificationService.notify_voting_started(
+            milestone.campaign_id, milestone.campaign.title, milestone.milestone_number
+        )
+        
         db.commit()
         db.refresh(milestone)
         return milestone
@@ -98,6 +110,12 @@ class MilestoneWorkflowService:
         milestone.status = 'voting_open'
         milestone.voting_start_date = now
         milestone.voting_end_date = now + timedelta(days=window_days)
+        
+        # TRIGGER BROADCAST EVENT: Voting Window Open
+        from app.services.notification_service import NotificationService
+        NotificationService.notify_voting_started(
+            milestone.campaign_id, milestone.campaign.title, milestone.milestone_number
+        )
         
         db.commit()
         db.refresh(milestone)
