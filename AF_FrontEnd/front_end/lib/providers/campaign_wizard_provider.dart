@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/project.dart';
+import 'dart:convert';
 
 class CampaignWizardState {
   final String title;
@@ -12,6 +13,7 @@ class CampaignWizardState {
   final List<dynamic>? milestones;
   final String? coverImagePath;
   final int currentStep;
+  final List<Map<String, dynamic>> budgetItems;
   final bool isLoading;
 
   CampaignWizardState({
@@ -25,6 +27,7 @@ class CampaignWizardState {
     this.milestones,
     this.coverImagePath,
     this.currentStep = 0,
+    this.budgetItems = const [],
     this.isLoading = false,
   });
 
@@ -39,6 +42,7 @@ class CampaignWizardState {
     List<dynamic>? milestones,
     String? coverImagePath,
     int? currentStep,
+    List<Map<String, dynamic>>? budgetItems,
     bool? isLoading,
   }) {
     return CampaignWizardState(
@@ -52,6 +56,7 @@ class CampaignWizardState {
       milestones: milestones ?? this.milestones,
       coverImagePath: coverImagePath ?? this.coverImagePath,
       currentStep: currentStep ?? this.currentStep,
+      budgetItems: budgetItems ?? this.budgetItems,
       isLoading: isLoading ?? this.isLoading,
     );
   }
@@ -96,8 +101,13 @@ class CampaignWizardState {
       durationMonths: durationMonths,
       category: category,
       fundraiserId: fundraiserId,
-      numPhases: estimatedPhaseCount, // Temporary during creation
+      numPhases: estimatedPhaseCount,
+      budgetData: budgetItems.isNotEmpty ? _serializeBudget(budgetItems) : null,
     );
+  }
+
+  String _serializeBudget(List<Map<String, dynamic>> items) {
+    return jsonEncode(items);
   }
 }
 
@@ -139,6 +149,18 @@ class CampaignWizardNotifier extends Notifier<CampaignWizardState> {
 
   void setLoading(bool loading) {
     state = state.copyWith(isLoading: loading);
+  }
+
+  void updateBudgetItems(List<Map<String, dynamic>> items) {
+    state = state.copyWith(budgetItems: items);
+  }
+
+  void reset() {
+    state = CampaignWizardState();
+  }
+
+  Project toProject(String fundraiserId) {
+    return state.toProject(fundraiserId);
   }
 }
 

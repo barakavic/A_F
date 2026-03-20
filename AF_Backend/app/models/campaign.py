@@ -28,6 +28,7 @@ class Campaign(Base):
     
     total_contributions = Column(Numeric(12, 2), default=0)
     total_released = Column(Numeric(12, 2), default=0)
+    budget_data = Column(Text, nullable=True) # JSON stored as text for simplicity
 
     # Timeline Markers
     submitted_for_review_at = Column(DateTime, nullable=True)

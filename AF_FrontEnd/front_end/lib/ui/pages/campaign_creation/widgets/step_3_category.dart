@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:front_end/core/constants/app_colors.dart';
 import 'package:front_end/providers/campaign_wizard_provider.dart';
+import 'package:front_end/core/utils/currency_formatter.dart';
 import 'wizard_shared_widgets.dart';
+import 'budget_builder.dart';
 
 class Step3Category extends ConsumerWidget {
   final GlobalKey<FormState> formKey;
@@ -24,12 +26,12 @@ class Step3Category extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "Category & Analysis",
+              "Proposed Budget",
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              "Select your industry to help us analyze the risk.",
+              "Break down how you plan to use the KES ${CurrencyFormatter.format(state.goalAmount)} funding.",
               style: TextStyle(color: Colors.grey.shade600, height: 1.5),
             ),
             const SizedBox(height: 32),
@@ -48,6 +50,8 @@ class Step3Category extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             _buildAlgoPreview(state),
+            const SizedBox(height: 48),
+            const BudgetBuilder(),
           ],
         ),
       ),

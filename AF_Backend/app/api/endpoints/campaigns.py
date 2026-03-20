@@ -39,7 +39,8 @@ def create_campaign(
             funding_goal=float(campaign_in.funding_goal_f),
             duration_months=campaign_in.duration_d,
             category=campaign_in.category,
-            campaign_type=campaign_in.campaign_type_ct
+            campaign_type=campaign_in.campaign_type_ct,
+            budget_data=campaign_in.budget_data
         )
         return campaign
     except ValueError as e:
