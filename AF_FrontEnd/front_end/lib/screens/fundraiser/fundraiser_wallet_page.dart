@@ -132,10 +132,14 @@ class _FundraiserWalletPageState extends ConsumerState<FundraiserWalletPage> {
               child: SizedBox(
                 width: MediaQuery.of(context).size.width * 0.6,
                 child: ElevatedButton(
-                  onPressed: () => _showWithdrawDialog(stats.availableBalance),
+                  onPressed: stats.availableBalance > 0 
+                      ? () => _showWithdrawDialog(stats.availableBalance)
+                      : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.grey.shade300,
+                    disabledForegroundColor: Colors.grey.shade500,
                     minimumSize: const Size(double.infinity, 50),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
