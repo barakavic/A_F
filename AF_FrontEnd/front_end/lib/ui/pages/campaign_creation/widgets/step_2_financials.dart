@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:front_end/core/utils/currency_formatter.dart';
 import 'wizard_shared_widgets.dart';
 
 class Step2Financials extends ConsumerWidget {
@@ -39,9 +40,10 @@ class Step2Financials extends ConsumerWidget {
               hint: "1,000,000",
               isNumber: true,
               prefixIcon: Icons.payments_outlined,
+              inputFormatters: [CurrencyFormatter.inputFormatter],
               validator: (v) {
-                final val = double.tryParse(v ?? '');
-                if (val == null || val < 1000) return "Minimum goal is KES 1,000";
+                final val = CurrencyFormatter.parse(v);
+                if (val < 1000) return "Minimum goal is KES 1,000";
                 return null;
               },
             ),

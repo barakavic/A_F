@@ -4,6 +4,7 @@ import 'package:provider/provider.dart' as legacy_provider;
 import '../../../providers/campaign_wizard_provider.dart';
 import '../../../providers/project_provider.dart';
 import '../../../providers/auth_provider.dart' as auth;
+import '../../../core/utils/currency_formatter.dart';
 import 'widgets/wizard_shared_widgets.dart';
 import 'widgets/step_1_basic_info.dart';
 import 'widgets/step_2_financials.dart';
@@ -61,7 +62,7 @@ class _CampaignWizardPageState extends ConsumerState<CampaignWizardPage> {
             );
       } else if (step == 1) {
         ref.read(campaignWizardProvider.notifier).updateFinancials(
-              double.tryParse(_goalController.text) ?? 0.0,
+              CurrencyFormatter.parse(_goalController.text),
               int.tryParse(_durationController.text) ?? 1,
             );
       }

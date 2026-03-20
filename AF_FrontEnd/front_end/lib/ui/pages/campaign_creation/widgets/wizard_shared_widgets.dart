@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:front_end/core/constants/app_colors.dart';
 
 class WizardProgressBar extends StatelessWidget {
@@ -41,6 +42,7 @@ class WizardTextField extends StatelessWidget {
   final bool isNumber;
   final IconData? prefixIcon;
   final String? Function(String?)? validator;
+  final List<TextInputFormatter>? inputFormatters;
 
   const WizardTextField({
     super.key,
@@ -51,6 +53,7 @@ class WizardTextField extends StatelessWidget {
     this.isNumber = false,
     this.prefixIcon,
     this.validator,
+    this.inputFormatters,
   });
 
   @override
@@ -65,6 +68,7 @@ class WizardTextField extends StatelessWidget {
           maxLines: maxLines,
           keyboardType: isNumber ? TextInputType.number : TextInputType.text,
           validator: validator,
+          inputFormatters: inputFormatters,
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20) : null,
