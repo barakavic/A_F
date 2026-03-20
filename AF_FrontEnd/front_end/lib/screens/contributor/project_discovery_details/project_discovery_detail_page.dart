@@ -9,6 +9,7 @@ import 'widgets/project_stats_row.dart';
 import 'widgets/project_funding_progress.dart';
 import 'widgets/project_fundraiser_trust.dart';
 import 'widgets/project_funding_bar.dart';
+import 'widgets/project_budget_display.dart';
 
 class ProjectDiscoveryDetail extends ConsumerStatefulWidget {
   final Project project;
@@ -210,6 +211,8 @@ class _ProjectDiscoveryDetailState
                               height: 1.6,
                               fontSize: 15),
                         ),
+                        const SizedBox(height: 32),
+                        ProjectBudgetDisplay(budgetData: project.budgetData),
                         const SizedBox(height: 32),
                         ProjectFundraiserTrust(
                           fundraiserName: project.fundraiserName,
