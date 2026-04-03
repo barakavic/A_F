@@ -230,12 +230,18 @@ class VotingService:
             
             # TRIGGER REFUND: If milestone is rejected, the whole campaign is refunded
             if outcome == 'rejected':
+                from app.services.campaign_state_service import CampaignStateService
                 from app.services.refund_service import RefundService
+                
+                # 1. Process legal/financial refunds
                 RefundService.process_campaign_refunds(
                     db=db, 
                     campaign_id=milestone.campaign_id,
                     reason=f"Milestone {milestone.description} rejected by contributors"
                 )
+                
+                # 2. Transition Campaign to FAILED and trigger broadcast
+                CampaignStateService.terminate_campaign(db, milestone.campaign_id)
             
             # TRIGGER RELEASE: If milestone is approved, release funds immediately
             if outcome == 'approved':
