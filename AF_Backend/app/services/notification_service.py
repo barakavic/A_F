@@ -28,8 +28,6 @@ class NotificationService:
                 logger.info("Firebase Admin SDK initialized successfully")
                 return True
             else:
-                # We log this as info rather than warning to avoid cluttering logs during dev
-                # The developer can drop the JSON file in anytime to activate real pushes
                 return False
         except Exception as e:
             logger.error(f"Failed to initialize Firebase Admin SDK: {e}")
@@ -74,7 +72,7 @@ class NotificationService:
         except Exception as e:
             logger.error(f"Failed to send topic broadcast to {topic}: {e}")
 
-    # --- High Level Event Handlers ---
+
 
     @staticmethod
     def notify_investment_confirmed(db: Session, contributor_id: uuid.UUID, campaign_title: str, amount: float):
@@ -93,7 +91,7 @@ class NotificationService:
         )
         # Notify all contributors via Topic
         NotificationService.send_to_topic(
-            str(campaign_id), 
+            f"campaign_{campaign_id}", 
             "Project Funded", 
             f"The project '{title}' has reached its goal. Phases will start soon!"
         )
@@ -101,7 +99,7 @@ class NotificationService:
     @staticmethod
     def notify_voting_started(campaign_id: uuid.UUID, campaign_title: str, phase_number: int):
         NotificationService.send_to_topic(
-            str(campaign_id),
+            f"campaign_{campaign_id}",
             "Voting Window Open",
             f"Phase {phase_number} for '{campaign_title}' is ready for review. Cast your vote now!"
         )
@@ -124,23 +122,33 @@ class NotificationService:
     def notify_vote_results(campaign_id: uuid.UUID, title: str, phase_number: int, approved: bool, percentage: float):
         result_text = "Approved" if approved else "Rejected"
         NotificationService.send_to_topic(
-            str(campaign_id),
+            f"campaign_{campaign_id}",
             "Voting Results Available",
             f"Phase {phase_number} for '{title}' has been {result_text} with {percentage}% approval."
         )
 
     @staticmethod
-    def notify_campaign_completed(campaign_id: uuid.UUID, title: str):
+    def notify_campaign_completed(db: Session, fundraiser_id: uuid.UUID, campaign_id: uuid.UUID, title: str):
+        # 1. Notify Fundraiser (Direct)
+        NotificationService.send_to_user(
+            db, fundraiser_id, "Success! Campaign Completed", f"Congratulations! Your campaign '{title}' has successfully completed all its phases."
+        )
+        # 2. Notify Contributors (Topic)
         NotificationService.send_to_topic(
-            str(campaign_id),
+            f"campaign_{campaign_id}",
             "Campaign Completed",
             f"Success! The campaign '{title}' has successfully completed all its phases."
         )
 
     @staticmethod
-    def notify_campaign_failed(campaign_id: uuid.UUID, title: str):
+    def notify_campaign_failed(db: Session, fundraiser_id: uuid.UUID, campaign_id: uuid.UUID, title: str):
+        # 1. Notify Fundraiser (Direct)
+        NotificationService.send_to_user(
+            db, fundraiser_id, "Campaign Failed", f"Your campaign '{title}' was terminated following a rejected vote."
+        )
+        # 2. Notify Contributors (Topic)
         NotificationService.send_to_topic(
-            str(campaign_id),
+            f"campaign_{campaign_id}",
             "Campaign Failed",
             f"The campaign '{title}' has failed due to a rejected phase and was unable to continue."
         )

@@ -122,8 +122,7 @@ class _BudgetBuilderState extends ConsumerState<BudgetBuilder> {
                     keyboardType: TextInputType.number,
                     inputFormatters: [CurrencyFormatter.inputFormatter],
                     decoration: InputDecoration(
-                      labelText: "Cost (KES)",
-                      prefixText: "KES ",
+                      labelText: "Cost",
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
@@ -185,7 +184,7 @@ class _BudgetBuilderState extends ConsumerState<BudgetBuilder> {
                 ? "Over by KES ${CurrencyFormatter.format(diff.abs())}"
                 : "Under by KES ${CurrencyFormatter.format(diff)}",
             style: TextStyle(
-              color: isOver ? Colors.red : Colors.pink.shade400,
+              color: isOver ? Colors.red : Colors.green.shade400,
               fontWeight: FontWeight.bold,
               fontSize: 12,
             ),

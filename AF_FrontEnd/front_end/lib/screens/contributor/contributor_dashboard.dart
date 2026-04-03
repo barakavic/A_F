@@ -9,6 +9,8 @@ import '../../ui/pages/contributor/portfolio_page.dart';
 import '../../data/services/contribution_service.dart';
 import '../../data/models/contributor_stats.dart';
 import '../../data/models/contribution.dart';
+import '../../data/services/voting_service.dart';
+import '../../data/services/notification_service.dart' as af_notif;
 import 'package:intl/intl.dart';
 
 class ContributorDashboard extends StatefulWidget {
@@ -21,8 +23,10 @@ class ContributorDashboard extends StatefulWidget {
 class _ContributorDashboardState extends State<ContributorDashboard> {
   int _selectedIndex = 0;
   final ContributionService _contributionService = ContributionService();
+  final VotingService _votingService = VotingService();
   ContributorStats _stats = ContributorStats.empty();
   List<UserContribution> _contributions = [];
+  int _pendingVotesCount = 0;
   bool _isLoading = true;
 
   @override
@@ -36,13 +40,20 @@ class _ContributorDashboardState extends State<ContributorDashboard> {
       final results = await Future.wait([
         _contributionService.getContributorStats(),
         _contributionService.getMyContributions(),
+        _votingService.getPendingVotes(),
       ]);
 
       if (mounted) {
         setState(() {
           _stats = results[0] as ContributorStats;
           _contributions = results[1] as List<UserContribution>;
+          _pendingVotesCount = (results[2] as List).length;
         });
+
+        // AUTO-SUBSCRIBE to all active campaign topics for real-time alerts
+        for (var contribution in _contributions) {
+           af_notif.NotificationService().subscribeToTopic('campaign_${contribution.campaignId}');
+        }
       }
     } catch (e) {
       debugPrint('Dashboard fetch error: $e');
@@ -134,10 +145,10 @@ class _ContributorDashboardState extends State<ContributorDashboard> {
                   : Column(
                       children: _contributions
                           .map((c) => _buildContributionListItem(
-                                c.campaignTitle,
-                                c.status,
-                                c.amount,
-                              ))
+                                 c.campaignTitle,
+                                 c.status,
+                                 c.amount,
+                               ))
                           .toList(),
                     ),
         ],
@@ -192,23 +203,49 @@ class _ContributorDashboardState extends State<ContributorDashboard> {
         children: [
           _navIcon(0, Icons.home_rounded),
           _navIcon(1, Icons.trending_up_rounded), 
-          _navIcon(2, Icons.account_balance_wallet_outlined),
+          _navIcon(2, Icons.account_balance_wallet_outlined, badgeCount: _pendingVotesCount),
         ],
       ),
     );
   }
 
-  Widget _navIcon(int index, IconData icon) {
+  Widget _navIcon(int index, IconData icon, {int badgeCount = 0}) {
     final isSelected = _selectedIndex == index;
     return GestureDetector(
-      onTap: () => setState(() => _selectedIndex = index),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, color: isSelected ? AppColors.primary : Colors.grey, size: 28),
+      onTap: () {
+        if (_selectedIndex != index) {
+          setState(() => _selectedIndex = index);
+          // Refresh data whenever we switch tabs to keep badges/stats live
+          _fetchData();
+        }
+      },
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: isSelected ? AppColors.primary : Colors.grey, size: 28),
+          ),
+          if (badgeCount > 0)
+            Positioned(
+              right: 0,
+              top: 0,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                child: Text(
+                  badgeCount.toString(),
+                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
