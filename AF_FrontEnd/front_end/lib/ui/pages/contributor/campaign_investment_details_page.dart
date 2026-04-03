@@ -3,6 +3,7 @@ import 'package:front_end/core/constants/app_colors.dart';
 import 'package:front_end/data/models/campaign_details.dart';
 import 'package:front_end/data/models/milestone.dart';
 import 'package:front_end/data/repositories/campaign_repository.dart';
+import 'package:front_end/data/services/notification_service.dart';
 
 class CampaignInvestmentDetailsPage extends StatefulWidget {
   final String campaignId;
@@ -41,6 +42,8 @@ class _CampaignInvestmentDetailsPageState extends State<CampaignInvestmentDetail
         _details = data;
         _isLoading = false;
       });
+
+      NotificationService().subscribeToTopic('campaign_${widget.campaignId}');
     } catch (e) {
       setState(() {
         _error = e.toString();

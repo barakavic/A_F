@@ -74,6 +74,12 @@ def get_fundraiser_stats(
         func.sum(Campaign.total_released).label("total_released"),
     ).filter(Campaign.fundraiser_id == current_user.account_id).first()
     
+    # Sum of current balances in escrow accounts across all campaigns owned by this fundraiser
+    from app.models.escrow import EscrowAccount
+    escrow_sum = db.query(
+        func.sum(EscrowAccount.balance).label("total_balance")
+    ).join(Campaign).filter(Campaign.fundraiser_id == current_user.account_id).first()
+    
     total_raised = campaign_sums.total_raised or 0
     total_released = campaign_sums.total_released or 0
     
@@ -81,7 +87,7 @@ def get_fundraiser_stats(
     total_withdrawn = current_user.fundraiser_profile.total_withdrawn or 0
     available_balance = total_released - total_withdrawn
     
-    escrow_balance = total_raised - total_released
+    escrow_balance = escrow_sum.total_balance or 0
     
     active_projects_count = db.query(Campaign)\
         .filter(Campaign.fundraiser_id == current_user.account_id)\
