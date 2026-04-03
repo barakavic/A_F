@@ -91,7 +91,7 @@ class CampaignStateService:
         
         # Trigger Broadcast
         from app.services.notification_service import NotificationService
-        NotificationService.notify_campaign_completed(campaign.id, campaign.title)
+        NotificationService.notify_campaign_completed(db, campaign.fundraiser_id, campaign.campaign_id, campaign.title)
         
         return campaign
 
@@ -104,6 +104,6 @@ class CampaignStateService:
         
         # Trigger Broadcast
         from app.services.notification_service import NotificationService
-        NotificationService.notify_campaign_failed(campaign.id, campaign.title)
+        NotificationService.notify_campaign_failed(db, campaign.fundraiser_id, campaign.campaign_id, campaign.title)
         
         return campaign
