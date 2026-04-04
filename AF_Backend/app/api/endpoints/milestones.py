@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from uuid import UUID
 import os
+from app.core.cloudinary_upload import upload_image
 
 from app.api.dependencies.deps import get_db, get_current_user
 from app.models.user import User
@@ -31,9 +32,8 @@ async def test_broadcast(
     await emit_milestone_update(campaign_id, data)
     return {"message": "Broadcast sent", "data": data}
 
-# Directory for evidence uploads
+# Directory for local fallback (not actively used in production)
 UPLOAD_DIR = "uploads/evidence"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/{milestone_id}/submit-evidence", response_model=MilestoneOut)
 async def submit_evidence(
@@ -53,26 +53,24 @@ async def submit_evidence(
     if str(milestone.campaign.fundraiser_id) != str(current_user.account_id):
         raise HTTPException(status_code=403, detail="Not authorized")
     
-    file_path = None
+    file_url = None
     file_type = None
     
     if file:
-        file_extension = os.path.splitext(file.filename)[1]
-        file_name = f"{milestone_id}_{current_user.account_id}{file_extension}"
-        file_path = os.path.join(UPLOAD_DIR, file_name)
-        
-        with open(file_path, "wb") as buffer:
-            content = await file.read()
-            buffer.write(content)
-        
+        content = await file.read()
         file_type = file.content_type
+        file_url = upload_image(
+            file_bytes=content,
+            folder="evidence",
+            public_id=f"{milestone_id}_{current_user.account_id}"
+        )
 
     try:
         updated_milestone = MilestoneWorkflowService.submit_evidence(
             db=db,
             milestone_id=milestone_id,
             description=description,
-            file_path=file_path,
+            file_path=file_url,
             file_type=file_type
         )
         return updated_milestone

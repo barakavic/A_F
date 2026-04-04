@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     MPESA_TIMEOUT_URL: str = ""
     MPESA_INITIATOR_NAME: str = ""
     MPESA_INITIATOR_PASSWORD: str = ""
+
+    # Cloudinary Configuration
+    CLOUDINARY_CLOUD_NAME: str = ""
+    CLOUDINARY_API_KEY: str = ""
+    CLOUDINARY_API_SECRET: str = ""
     
     class Config:
         case_sensitive = True

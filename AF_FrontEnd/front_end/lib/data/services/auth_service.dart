@@ -32,25 +32,29 @@ class AuthService {
         final role = response.data['role'] ?? 'fundraiser';
         final serverEmail = response.data['email'];
         final userId = response.data['account_id'];
+        final displayName = response.data['display_name'];
 
-        // MUST save token first so getProfile() uses the new authentication
         await _saveAuthData(token, role, userId, serverEmail ?? email);
         
-        // Fetch full profile to get the name
-        try {
-          final profile = await getProfile();
+        if (displayName != null) {
+          await _storage.write(key: _userNameKey, value: displayName);
+        } else {
           
-          String? name;
-          if (role == 'fundraiser') {
-            name = profile['fundraiser_profile']?['company_name'];
-          } else {
-            name = profile['contributor_profile']?['uname'];
+          try {
+            final profile = await getProfile();
+            
+            String? name;
+            if (role == 'fundraiser') {
+              name = profile['fundraiser_profile']?['company_name'];
+            } else {
+              name = profile['contributor_profile']?['uname'];
+            }
+            if (name != null) {
+              await _storage.write(key: _userNameKey, value: name);
+            }
+          } catch (e) {
+            print("Profile fetch error during login: $e");
           }
-          if (name != null) {
-            await _storage.write(key: _userNameKey, value: name);
-          }
-        } catch (e) {
-          print("Profile fetch error during login: $e");
         }
 
         return response.data;
@@ -83,6 +87,18 @@ class AuthService {
           ...profileData,
         },
       );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        String? name;
+        if (role == 'fundraiser') {
+          name = profileData['company_name'];
+        } else {
+          name = profileData['uname'];
+        }
+        if (name != null) {
+          await _storage.write(key: _userNameKey, value: name);
+        }
+      }
 
       return response.data;
     } catch (e) {

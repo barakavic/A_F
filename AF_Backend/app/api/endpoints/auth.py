@@ -39,6 +39,13 @@ def login_access_token(
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
         
+
+    display_name = None
+    if user.role == 'fundraiser' and user.fundraiser_profile:
+        display_name = user.fundraiser_profile.company_name
+    elif user.role == 'contributor' and user.contributor_profile:
+        display_name = user.contributor_profile.uname
+        
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(
         subject=user.account_id, expires_delta=access_token_expires
@@ -48,7 +55,8 @@ def login_access_token(
         "token_type": "bearer", 
         "role": user.role, 
         "account_id": user.account_id,
-        "email": user.email
+        "email": user.email,
+        "display_name": display_name
     }
 
 @router.post("/register/contributor", response_model=UserSchema)

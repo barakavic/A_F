@@ -201,10 +201,10 @@ class BasicInfoStep extends StatelessWidget {
         child: DropdownButton<String>(
           value: selectedCountryCode,
           items: [
-            DropdownMenuItem(value: '+254', child: Text('🇰🇪 +254', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
-            DropdownMenuItem(value: '+256', child: Text('🇺🇬 +256', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
-            DropdownMenuItem(value: '+255', child: Text('🇹🇿 +255', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
-            DropdownMenuItem(value: '+250', child: Text('🇷🇼 +250', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
+            DropdownMenuItem(value: '+254', child: Text('+254', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
+            DropdownMenuItem(value: '+256', child: Text('+256', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
+            DropdownMenuItem(value: '+255', child: Text('+255', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
+            DropdownMenuItem(value: '+250', child: Text('+250', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
           ],
           onChanged: onCountryCodeChanged,
           style: const TextStyle(color: AppColors.textPrimary),
