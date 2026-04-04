@@ -5,6 +5,7 @@ from uuid import UUID
 import uuid
 import os
 import shutil
+from app.core.cloudinary_upload import upload_image
 
 from app.api.dependencies.deps import get_db, get_current_user
 from app.schemas.campaign import CampaignCreate, CampaignOut, CampaignUpdate, MilestoneOut, CampaignProgress, FundraiserStats, WithdrawalRequest, WithdrawalResult
@@ -156,22 +157,16 @@ async def upload_cover_image(
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
 
-    # Create directory if it doesn't exist
-    upload_dir = "uploads/campaigns"
-    os.makedirs(upload_dir, exist_ok=True)
+    # Read file bytes and upload to Cloudinary
+    file_bytes = await file.read()
+    cloudinary_url = upload_image(
+        file_bytes=file_bytes,
+        folder="campaigns",
+        public_id=str(campaign_id)
+    )
 
-    # Generate unique filename
-    file_extension = os.path.splitext(file.filename)[1]
-    filename = f"{uuid.uuid4()}{file_extension}"
-    file_path = os.path.join(upload_dir, filename)
-
-    # Save file
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-
-    # Update campaign
-    # We store the relative static path. The frontend can prefix with API URL.
-    campaign.cover_image_url = f"/static/campaigns/{filename}"
+    # Update campaign with cloud URL
+    campaign.cover_image_url = cloudinary_url
     db.commit()
     db.refresh(campaign)
     
