@@ -58,6 +58,7 @@ class Token(BaseModel):
     role: str
     account_id: UUID
     email: str
+    display_name: Optional[str] = None
 
 class TokenData(BaseModel):
     account_id: Optional[str] = None
