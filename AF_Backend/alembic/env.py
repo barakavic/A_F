@@ -62,8 +62,14 @@ def run_migrations_online() -> None:
 
     """
     configuration = config.get_section(config.config_ini_section, {})
-    if os.environ.get("DATABASE_URL"):
-        configuration["sqlalchemy.url"] = os.environ.get("DATABASE_URL")
+    
+    # Get database URL from environment variable
+    db_url = os.environ.get("DATABASE_URL")
+    if db_url:
+        # Fix for SQLAlchemy 1.4+ which requires 'postgresql://' instead of 'postgres://'
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        configuration["sqlalchemy.url"] = db_url
         
     connectable = engine_from_config(
         configuration,
