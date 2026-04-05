@@ -19,18 +19,29 @@ class NotificationService:
             return True
         
         try:
-            # Look for the credentials file in the root directory
+            # 1. Try checking Railway Environment variables for raw JSON
+            env_cred = os.getenv("FIREBASE_CREDENTIALS_JSON")
+            if env_cred:
+                import json
+                cred_dict = json.loads(env_cred)
+                cred = credentials.Certificate(cred_dict)
+                firebase_admin.initialize_app(cred)
+                NotificationService._initialized = True
+                logger.info("Firebase Admin SDK initialized via Environment Variable")
+                return True
+                
+            # 2. Fallback: Look for the credentials file locally (good for local dev)
             cred_path = os.path.join(os.getcwd(), "firebase-service-account.json")
             if os.path.exists(cred_path):
                 cred = credentials.Certificate(cred_path)
                 firebase_admin.initialize_app(cred)
                 NotificationService._initialized = True
-                logger.info("Firebase Admin SDK initialized successfully")
+                logger.info("Firebase Admin SDK initialized successfully from file")
                 return True
             else:
                 return False
         except Exception as e:
-            logger.error(f"Failed to initialize Firebase Admin SDK: {e}")
+            logger.error(f"Failed to initialize Firebase Admin: {e}")
             return False
 
     @staticmethod

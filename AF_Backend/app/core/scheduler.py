@@ -4,10 +4,8 @@ from app.db.session import SessionLocal
 import logging
 import os
 
-# Create logs directory if it doesn't exist
 os.makedirs("logs", exist_ok=True)
 
-# Configure logging for automation
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -43,12 +41,9 @@ def run_voting_check():
         db.close()
 
 def start_scheduler():
-    # Schedule tasks to run every hour
-    # We use 'interval' trigger for consistent gaps
     scheduler.add_job(run_funding_check, 'interval', hours=1, id='funding_monitor')
     scheduler.add_job(run_voting_check, 'interval', hours=1, id='voting_monitor')
     
-    # Also run them immediately on startup to ensure no missed events during downtime
     scheduler.add_job(run_funding_check, 'date', run_date=None, id='funding_monitor_startup')
     scheduler.add_job(run_voting_check, 'date', run_date=None, id='voting_monitor_startup')
     

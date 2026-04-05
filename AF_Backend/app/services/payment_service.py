@@ -118,7 +118,7 @@ class PaymentService:
         result_desc: str
     ) -> Dict[str, Any]:
         """
-        Process the callback from M-Pesa (or simulator).
+        Process the callback from M-Pesa.
         
         Args:
             db: Database session
@@ -140,12 +140,12 @@ class PaymentService:
         
         try:
             if result_code == 0:
-                # Success - Create the contribution
+                #Create the contribution
                 campaign_id = uuid.UUID(session_data["campaign_id"])
                 contributor_id = uuid.UUID(session_data["contributor_id"])
                 amount = session_data["amount"]
                 
-                # This triggers the entire flow: Escrow update, Ledger entry, Vote token
+                
                 result = ContributionService.create_contribution(
                     db=db,
                     campaign_id=campaign_id,

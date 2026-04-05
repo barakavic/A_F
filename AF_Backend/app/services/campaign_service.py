@@ -11,7 +11,7 @@ import uuid
 class CampaignService:
     @staticmethod
     def create_campaign(
-        db: Session,
+        db: Session, 
         fundraiser_id: uuid.UUID,
         title: str,
         description: str,
@@ -24,12 +24,12 @@ class CampaignService:
         """
         Create a new campaign and generate milestones based on algorithms.
         """
-        # 1. Fetch Fundraiser Profile for Risk Calc
+        # Fetch Fundraiser Profile for Risk Calculation
         profile = db.query(FundraiserProfile).filter(FundraiserProfile.fundraiser_id == fundraiser_id).first()
         if not profile:
             raise ValueError("Fundraiser profile not found")
             
-        # 2. Calculate Algorithmic Parameters
+        # Calculate Algorithmic Parameters
         # Risk Factor C
         # Using L1/L2 weights from profile if available, else defaults
         l1_risk = float(profile.industry_l1.l1_risk_weight) if profile.industry_l1 else 0.5
@@ -42,7 +42,7 @@ class CampaignService:
         # Phase Count P
         phase_count = AlgorithmService.calculate_phase_count(risk_c, funding_goal, duration_months)
         
-        # 3. Create Campaign Record
+        # Create Campaign Record
         campaign = Campaign(
             fundraiser_id=fundraiser_id,
             title=title,
@@ -60,11 +60,11 @@ class CampaignService:
         db.add(campaign)
         db.flush() # Get ID
         
-        # 4. Create Escrow Account
+        # Create Escrow Account
         escrow = EscrowAccount(campaign_id=campaign.campaign_id)
         db.add(escrow)
         
-        # 5. Generate Milestones
+        # Generate Milestones
         weights = AlgorithmService.calculate_milestone_weights(phase_count, alpha)
         
         # Seeding phase duration (0.1 * D or 0.1 months minimum)
