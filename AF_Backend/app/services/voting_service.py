@@ -10,12 +10,11 @@ class VotingService:
     def generate_vote_token(db: Session, campaign_id: uuid.UUID, contributor_id: uuid.UUID) -> VoteToken:
         """
         Generate a vote token for a contributor.
-        In the new system, this is mainly a record that the user is authorized to vote.
         """
         token = VoteToken(
             campaign_id=campaign_id,
             contributor_id=contributor_id,
-            token_hash="authorized" # We use the public_key from profile for verification
+            token_hash="authorized" 
         )
         db.add(token)
         db.commit()
@@ -36,13 +35,13 @@ class VotingService:
         """
         import sys
         
-        # 1. Verify Milestone exists
+        # Verify Milestone exists
         milestone = db.query(Milestone).filter(Milestone.milestone_id == milestone_id).first()
         if not milestone:
             print(f"[VOTING] Milestone {milestone_id} not found", file=sys.stderr, flush=True)
             raise ValueError("Milestone not found")
 
-        # 2. Verify Contributor is authorized
+        #Verify Contributor is authorized
         token = db.query(VoteToken).filter(
             VoteToken.campaign_id == milestone.campaign_id,
             VoteToken.contributor_id == contributor_id
@@ -52,10 +51,10 @@ class VotingService:
             print(f"[VOTING] Unauthorized: no token for contributor {contributor_id} on campaign {milestone.campaign_id}", file=sys.stderr, flush=True)
             raise ValueError("Unauthorized to vote on this campaign")
 
-        # 3. Get Contributor's Public Key
+        # Get Contributor's Public Key
         profile = db.query(ContributorProfile).filter(ContributorProfile.contributor_id == contributor_id).first()
         
-        # 4. Verify Digital Signature
+        # Verify Digital Signature
         is_valid = verify_vote_signature(
             campaign_id=str(milestone.campaign_id),
             milestone_id=str(milestone_id),
@@ -72,7 +71,7 @@ class VotingService:
             print(f"[VOTING] Invalid signature from {contributor_id}. Expected: {profile.public_key if profile else 'N/A'}, Recovered: {recovered}", file=sys.stderr, flush=True)
             raise ValueError("Invalid cryptographic signature. Vote rejected.")
 
-        # 5. Check if already voted
+        #Check if already voted
         existing_vote = db.query(VoteSubmission).filter(
             VoteSubmission.milestone_id == milestone_id,
             VoteSubmission.contributor_id == contributor_id
@@ -81,7 +80,7 @@ class VotingService:
         if existing_vote:
             raise ValueError("Already voted on this milestone")
             
-        # 6. Create vote hash for audit trail
+        # Create vote hash for audit trail
         vote_hash = generate_keccak_hash(f"{signature}{nonce}")
         
         vote = VoteSubmission(
@@ -95,7 +94,7 @@ class VotingService:
         db.commit()
         db.refresh(vote)
 
-        # AUTO-TALLY: If all users have voted, tally immediately
+        # If all users have voted, tally immediately
         total_tokens = db.query(VoteToken).filter(VoteToken.campaign_id == milestone.campaign_id).count()
         total_votes = db.query(VoteSubmission).filter(VoteSubmission.milestone_id == milestone_id).count()
 
@@ -105,85 +104,12 @@ class VotingService:
 
         return vote
 
-    @staticmethod
-    def waive_all_votes(
-        db: Session,
-        campaign_id: uuid.UUID,
-        contributor_id: uuid.UUID,
-        signature: str,
-        nonce: str
-    ) -> int:
-        """
-        Waive all future votes for a campaign.
-        Creates 'waived' vote submissions for all milestones in the campaign.
-        """
-        # 1. Verify Contributor is authorized
-        token = db.query(VoteToken).filter(
-            VoteToken.campaign_id == campaign_id,
-            VoteToken.contributor_id == contributor_id
-        ).first()
-        
-        if not token:
-            raise ValueError("You are not authorized to vote on this campaign")
-            
-        # 2. Get Contributor's Public Key
-        profile = db.query(ContributorProfile).filter(ContributorProfile.contributor_id == contributor_id).first()
-        if not profile or not profile.public_key:
-            raise ValueError("Contributor public key not found.")
-
-        # 3. Verify Master Waiver Signature
-        is_valid = verify_waiver_signature(
-            campaign_id=str(campaign_id),
-            nonce=nonce,
-            signature=signature,
-            public_key=profile.public_key
-        )
-        
-        if not is_valid:
-            raise ValueError("Invalid cryptographic signature for waiver.")
-
-        # 4. Find all milestones for this campaign
-        milestones = db.query(Milestone).filter(Milestone.campaign_id == campaign_id).all()
-        
-        waived_count = 0
-        for milestone in milestones:
-            # Check if already voted
-            existing_vote = db.query(VoteSubmission).filter(
-                VoteSubmission.milestone_id == milestone.milestone_id,
-                VoteSubmission.contributor_id == contributor_id
-            ).first()
-            
-            if not existing_vote:
-                # Create a waived vote
-                vote_hash = generate_keccak_hash(f"WAIVER-{signature}-{milestone.milestone_id}")
-                vote = VoteSubmission(
-                    milestone_id=milestone.milestone_id,
-                    contributor_id=contributor_id,
-                    vote_value='yes',
-                    vote_hash=vote_hash,
-                    signature=signature,
-                    is_waived=True
-                )
-                db.add(vote)
-                waived_count += 1
-                
-                # Check if this waiver completes a voting quorum for an OPEN milestone
-                if milestone.status == 'voting_open':
-                    total_tokens = db.query(VoteToken).filter(VoteToken.campaign_id == campaign_id).count()
-                    total_votes = db.query(VoteSubmission).filter(VoteSubmission.milestone_id == milestone.milestone_id).count()
-                    if total_votes >= total_tokens and total_tokens > 0:
-                        print(f"[VOTING] Waiver completed participation for milestone {milestone.milestone_id}. Auto-tallying...")
-                        VotingService.tally_votes(db, milestone.milestone_id)
-        
-        db.commit()
-        return waived_count
 
     @staticmethod
     def tally_votes(db: Session, milestone_id: uuid.UUID) -> VoteResult:
         """
         Tally votes for a milestone and determine outcome.
         Consensus required: >= 75% YES.
-        Note: is_waived=True counts as an automatic YES.
         """
         votes = db.query(VoteSubmission).filter(VoteSubmission.milestone_id == milestone_id).all()
         
@@ -194,7 +120,6 @@ class VotingService:
             no_votes = 0
             yes_percentage = 0
         else:
-            # Count 'yes' votes + 'waived' votes (ensure string comparison for Enum)
             yes_votes = sum(1 for v in votes if str(v.vote_value).lower() == 'yes' or v.is_waived is True)
             no_votes = total_votes - yes_votes
             yes_percentage = (yes_votes / total_votes) * 100
@@ -233,17 +158,16 @@ class VotingService:
                 from app.services.campaign_state_service import CampaignStateService
                 from app.services.refund_service import RefundService
                 
-                # 1. Process legal/financial refunds
                 RefundService.process_campaign_refunds(
                     db=db, 
                     campaign_id=milestone.campaign_id,
                     reason=f"Milestone {milestone.description} rejected by contributors"
                 )
                 
-                # 2. Transition Campaign to FAILED and trigger broadcast
+                # Transition Campaign to FAILED and trigger broadcast
                 CampaignStateService.terminate_campaign(db, milestone.campaign_id)
             
-            # TRIGGER RELEASE: If milestone is approved, release funds immediately
+            # If milestone is approved, release funds immediately
             if outcome == 'approved':
                 from app.services.financial_workflow_service import FinancialWorkflowService
                 try:
