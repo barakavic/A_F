@@ -26,43 +26,39 @@ class ContributionService:
         5. Create Transaction Ledger entry
         6. Generate Vote Token if not exists
         """
-        # 1. Verify Campaign
+        # Verify Campaign
         campaign = db.query(Campaign).filter(Campaign.campaign_id == campaign_id).with_for_update().first()
         if not campaign:
             raise ValueError("Campaign not found")
         
-        # Allow contributions to continue even if project just hit the goal or started phases (late M-Pesa callbacks)
         allowed_statuses = ['active', 'draft', 'funded', 'in_phases']
         if campaign.status not in allowed_statuses:
              raise ValueError(f"Campaign is not accepting funds. Current status: {campaign.status}")
 
-        # Check for over-funding
         from decimal import Decimal
         remaining = Decimal(str(campaign.funding_goal_f)) - (campaign.total_contributions or Decimal('0'))
         if Decimal(str(amount)) > remaining:
             raise ValueError(f"Transaction failed. This project only requires KES {remaining} to be fully funded.")
 
-        # 2. Create Contribution
+        #Create Contribution
         contribution = Contribution(
             campaign_id=campaign_id,
             contributor_id=contributor_id,
             amount=amount,
-            status='completed' # Assuming payment is successful for this logic
+            status='completed' 
         )
         db.add(contribution)
-        db.flush() # Get contribution_id
+        db.flush() 
 
-        # 3. Update Campaign
+        #Update Campaign
         campaign.total_contributions = (campaign.total_contributions or Decimal('0')) + Decimal(str(amount))
         
-        # Auto-launch into 'in_phases' state if goal reached
         if campaign.total_contributions >= campaign.funding_goal_f and campaign.status != 'in_phases':
             from app.services.campaign_state_service import CampaignStateService
-            # Move directly to phases
             CampaignStateService.start_phases(db, campaign_id)
             campaign.funded_at = datetime.utcnow()
         
-        # 4. Update Escrow & 5. Transaction Ledger (Using TransactionService for atomic updates)
+        #Update Escrow & Transaction Ledger
         escrow = db.query(EscrowAccount).filter(EscrowAccount.campaign_id == campaign_id).first()
         if not escrow:
             escrow = EscrowAccount(campaign_id=campaign_id)
@@ -79,8 +75,7 @@ class ContributionService:
             reference_code=reference_code
         )
 
-        # 6. Generate Vote Token
-        # Check if contributor already has a token for this campaign
+        #Generate Vote Token and Check if contributor already has a token for this campaign
         existing_token = db.query(VoteToken).filter(
             VoteToken.campaign_id == campaign_id,
             VoteToken.contributor_id == contributor_id
@@ -88,7 +83,6 @@ class ContributionService:
         
         vote_token_id = None
         if not existing_token:
-            # Generate a simple hash for the token (Keccak256 would be better, using sha256 for now)
             token_raw = f"{campaign_id}-{contributor_id}-{datetime.utcnow().timestamp()}"
             token_hash = hashlib.sha256(token_raw.encode()).hexdigest()
             
